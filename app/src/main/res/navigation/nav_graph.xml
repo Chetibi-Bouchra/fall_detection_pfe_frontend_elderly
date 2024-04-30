@@ -7,12 +7,12 @@
 
     <fragment
         android:id="@+id/contactsFragment"
-        android:name="com.example.appfall.fragments.ContactsFragment"
+        android:name="com.example.appfall.views.fragments.ContactsFragment"
         android:label="fragment_contacts"
         tools:layout="@layout/fragment_contacts" />
     <fragment
         android:id="@+id/codeFragment"
-        android:name="com.example.appfall.fragments.CodeFragment"
+        android:name="com.example.appfall.views.fragments.CodeFragment"
         android:label="fragment_code"
         tools:layout="@layout/fragment_code" />
 </navigation>

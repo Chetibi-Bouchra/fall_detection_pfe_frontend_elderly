@@ -4,8 +4,8 @@ import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import com.example.appfall.models.ConnectedSupervisor
-import com.example.appfall.models.ConnectedSupervisorsResponse
+import com.example.appfall.data.models.ConnectedSupervisor
+import com.example.appfall.data.models.ConnectedSupervisorsResponse
 import com.example.appfall.retrofit.RetrofitInstance
 import retrofit2.Call
 import retrofit2.Callback

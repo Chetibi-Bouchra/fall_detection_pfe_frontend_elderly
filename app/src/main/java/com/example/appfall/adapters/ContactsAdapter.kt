@@ -4,7 +4,7 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.example.appfall.databinding.ContactBinding
-import com.example.appfall.models.ConnectedSupervisor
+import com.example.appfall.data.models.ConnectedSupervisor
 
 class ContactsAdapter():RecyclerView.Adapter<ContactsAdapter.ContactsViewHolder>() {
     private var contactsList = ArrayList<ConnectedSupervisor>()

@@ -1,4 +1,4 @@
-package com.example.appfall.fragments
+package com.example.appfall.views.fragments
 
 import com.example.appfall.viewModels.ContactsViewModel
 import android.os.Bundle

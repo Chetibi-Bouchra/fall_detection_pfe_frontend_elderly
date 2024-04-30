@@ -6,22 +6,27 @@
         android:name="android.hardware.telephony"
         android:required="false" />
 
-    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.CALL_PHONE" />
 
     <application
-        android:allowClearUserData="true"
-        android:usesCleartextTraffic="true"
         android:allowBackup="true"
+        android:allowClearUserData="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
         android:icon="@mipmap/ic_launcher"
         android:label="AppFall"
         android:supportsRtl="true"
         android:theme="@style/Theme.AppFall"
+        android:usesCleartextTraffic="true"
         tools:targetApi="31">
         <activity
-            android:name=".activites.MainActivity"
+            android:name=".views.activities.AuthenticationActivity"
+            android:exported="false"
+            android:label="@string/title_activity_authentication"
+            android:theme="@style/Theme.AppFall" />
+        <activity
+            android:name=".views.activities.MainActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
