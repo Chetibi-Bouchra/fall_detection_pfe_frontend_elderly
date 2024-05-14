@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/nav_graph"
-    app:startDestination="@id/contactsFragment">
+    app:startDestination="@id/mapFragment">
 
     <fragment
         android:id="@+id/contactsFragment"
@@ -15,4 +15,9 @@
         android:name="com.example.appfall.fragments.CodeFragment"
         android:label="fragment_code"
         tools:layout="@layout/fragment_code" />
+    <fragment
+        android:id="@+id/mapFragment"
+        android:name="com.example.appfall.fragments.MapFragment"
+        android:label="fragment_map"
+        tools:layout="@layout/fragment_map" />
 </navigation>

@@ -64,4 +64,7 @@ dependencies {
     //Coroutine tests
     testImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-test:1.6.4"
 
+    //Mapbox
+    implementation 'com.mapbox.maps:android:11.3.1'
+
 }
