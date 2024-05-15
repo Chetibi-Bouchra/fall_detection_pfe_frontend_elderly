@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import com.example.appfall.R
@@ -24,6 +25,7 @@ import com.mapbox.maps.extension.style.sources.generated.geoJsonSource
 class MapFragment : Fragment() {
     private lateinit var mapView: MapView
     private val viewModel: MapViewModel by viewModels()
+    private lateinit var bouton: Button
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -31,6 +33,15 @@ class MapFragment : Fragment() {
     ): View? {
         val view = inflater.inflate(R.layout.fragment_map, container, false)
         mapView = view.findViewById(R.id.mapView)
+
+        bouton = view.findViewById(R.id.bouton)
+        bouton.setOnClickListener {
+            viewModel.onButtonClick() // Appel de la fonction dans le ViewModel lors du clic sur le bouton
+        }
+
+        viewModel.isConnected.observe(viewLifecycleOwner) { isConnected ->
+            updateBoutonText(isConnected) // Met à jour le texte du bouton en fonction de l'état observé dans le ViewModel
+        }
 
         viewModel.mapData.observe(viewLifecycleOwner) { mapData ->
             // Update UI with map data
@@ -86,4 +97,10 @@ class MapFragment : Fragment() {
         super.onLowMemory()
         mapView.onLowMemory()
     }
+
+    // Fonction pour mettre à jour le texte du bouton en fonction de l'état actuel
+    private fun updateBoutonText(isConnected: Boolean) {
+        bouton.text = if (isConnected) "Connecter" else "Déconnecter"
+    }
+
 }
