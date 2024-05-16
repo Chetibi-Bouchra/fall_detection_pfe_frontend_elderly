@@ -9,6 +9,14 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
+        <ProgressBar
+            android:id="@+id/login_progress_bar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:indeterminateTint="@color/hot_jazz"
+            android:visibility="gone" />
+
         <!-- Square container with light radius -->
         <LinearLayout
             android:id="@+id/container"
@@ -23,10 +31,10 @@
                 android:id="@+id/text_connexion"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:fontFamily="@font/myfont"
                 android:text="Connexion"
                 android:textColor="@android:color/black"
                 android:textSize="30sp"
-                android:fontFamily="@font/myfont"
                 android:textStyle="bold" />
 
             <EditText
@@ -34,28 +42,28 @@
                 android:layout_width="match_parent"
                 android:layout_height="50dp"
                 android:layout_marginTop="25dp"
-                android:hint="Numéro de téléphone"
                 android:background="@drawable/text_field"
+                android:fontFamily="@font/myfont"
+                android:hint="Numéro de téléphone"
                 android:inputType="phone"
                 android:paddingStart="8dp"
-                android:paddingEnd="8dp"
                 android:paddingTop="4dp"
-                android:paddingBottom="4dp"
-                android:fontFamily="@font/myfont" />
+                android:paddingEnd="8dp"
+                android:paddingBottom="4dp" />
 
             <EditText
                 android:id="@+id/edit_text_password"
                 android:layout_width="match_parent"
                 android:layout_height="50dp"
                 android:layout_marginTop="25dp"
-                android:hint="Mot de passe"
                 android:background="@drawable/text_field"
+                android:fontFamily="@font/myfont"
+                android:hint="Mot de passe"
                 android:inputType="textPassword"
                 android:paddingStart="8dp"
-                android:paddingEnd="8dp"
                 android:paddingTop="4dp"
-                android:paddingBottom="4dp"
-                android:fontFamily="@font/myfont" />
+                android:paddingEnd="8dp"
+                android:paddingBottom="4dp" />
 
             <Button
                 android:id="@+id/button_login"
@@ -64,9 +72,9 @@
                 android:layout_marginTop="50dp"
                 android:background="@drawable/rounded_button"
                 android:elevation="4dp"
+                android:fontFamily="@font/myfont"
                 android:text="Se connecter"
-                android:textColor="@android:color/white"
-                android:fontFamily="@font/myfont" />
+                android:textColor="@android:color/white" />
 
             <!-- Register text -->
             <RelativeLayout
@@ -79,22 +87,22 @@
                     android:id="@+id/text_register"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:fontFamily="@font/myfont"
                     android:text="Vous n'avez pas de compte ?"
-                    android:textColor="@android:color/black"
-                    android:fontFamily="@font/myfont" />
+                    android:textColor="@android:color/black" />
 
                 <!-- Clickable S'inscrire -->
                 <TextView
                     android:id="@+id/text_register_action"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_toEndOf="@id/text_register"
                     android:layout_marginStart="4dp"
+                    android:layout_toEndOf="@id/text_register"
+                    android:clickable="true"
+                    android:fontFamily="@font/myfont"
                     android:text="S'inscrire"
                     android:textColor="@android:color/holo_red_dark"
-                    android:textStyle="bold"
-                    android:clickable="true"
-                    android:fontFamily="@font/myfont" />
+                    android:textStyle="bold" />
             </RelativeLayout>
 
         </LinearLayout>

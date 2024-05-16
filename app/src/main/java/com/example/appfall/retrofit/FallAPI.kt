@@ -3,6 +3,7 @@ package com.example.appfall.retrofit
 import com.example.appfall.data.models.ConnectedSupervisorsResponse
 import com.example.appfall.data.models.LoginResponse
 import com.example.appfall.data.models.User
+import com.example.appfall.data.models.UserCredential
 import retrofit2.Call
 import retrofit2.http.Body
 import retrofit2.http.GET
@@ -16,5 +17,10 @@ interface FallAPI {
     @POST("users/addUser")
     fun addUser(
         @Body request: User,
+    ): Call<LoginResponse>
+
+    @POST("login/loginUser")
+    fun loginUser(
+        @Body request: UserCredential,
     ): Call<LoginResponse>
 }

@@ -6,6 +6,6 @@
         android:id="@+id/contactsFragment"/>
 
     <item android:title="Code"
-        android:icon="@drawable/ic_code"
+        android:icon="@drawable/ic_qrcode"
         android:id="@+id/codeFragment"/>
 </menu>

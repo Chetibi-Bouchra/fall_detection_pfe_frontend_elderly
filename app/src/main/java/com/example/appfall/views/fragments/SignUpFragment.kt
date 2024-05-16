@@ -44,7 +44,9 @@ class SignUpFragment : Fragment() {
             binding.container.visibility = View.GONE
             viewModel.addUser(user)
         }
-
+        binding.textLoginAction.setOnClickListener {
+            it.findNavController().navigate(R.id.action_signUpFragment_to_signInFragment)
+        }
         observeLoginResponse()
     }
 

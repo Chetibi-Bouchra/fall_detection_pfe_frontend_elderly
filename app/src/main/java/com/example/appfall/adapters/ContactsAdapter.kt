@@ -1,21 +1,24 @@
 package com.example.appfall.adapters
 
+import android.content.Intent
+import android.net.Uri
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.example.appfall.databinding.ContactBinding
 import com.example.appfall.data.models.ConnectedSupervisor
 
-class ContactsAdapter():RecyclerView.Adapter<ContactsAdapter.ContactsViewHolder>() {
+class ContactsAdapter : RecyclerView.Adapter<ContactsAdapter.ContactsViewHolder>() {
     private var contactsList = ArrayList<ConnectedSupervisor>()
 
-    fun setContacts(contactsList: ArrayList<ConnectedSupervisor>){
+    fun setContacts(contactsList: ArrayList<ConnectedSupervisor>) {
         this.contactsList = contactsList
         notifyDataSetChanged()
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ContactsViewHolder {
-        return ContactsViewHolder(ContactBinding.inflate(LayoutInflater.from(parent.context),parent,false))
+        val binding = ContactBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+        return ContactsViewHolder(binding)
     }
 
     override fun getItemCount(): Int {
@@ -24,15 +27,32 @@ class ContactsAdapter():RecyclerView.Adapter<ContactsAdapter.ContactsViewHolder>
 
     override fun onBindViewHolder(holder: ContactsViewHolder, position: Int) {
         val contact = contactsList[position]
-        holder.binding.apply {
-            /*Glide.with(holder.itemView)
-                .load(contact.urlImage)
-                .into(contactImage)*/
-            contactName.text = contact.name
-            contactPhone.text = contact.phone
-        }
-
+        holder.bind(contact)
     }
 
-    class ContactsViewHolder(internal val binding: ContactBinding):RecyclerView.ViewHolder(binding.root)
+    inner class ContactsViewHolder(private val binding: ContactBinding) :
+        RecyclerView.ViewHolder(binding.root) {
+
+        init {
+            // Set OnClickListener to the phone number TextView
+            binding.contactPhone.setOnClickListener {
+                val phoneNumber = binding.contactPhone.text.toString()
+                // Call the phone number
+                val intent = Intent(Intent.ACTION_DIAL).apply {
+                    data = Uri.parse("tel:$phoneNumber")
+                }
+                binding.root.context.startActivity(intent)
+            }
+        }
+
+        fun bind(contact: ConnectedSupervisor) {
+            binding.apply {
+                /*Glide.with(holder.itemView)
+                    .load(contact.urlImage)
+                    .into(contactImage)*/
+                contactName.text = contact.name
+                contactPhone.text = contact.phone
+            }
+        }
+    }
 }
