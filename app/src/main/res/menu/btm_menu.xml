@@ -2,10 +2,14 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
     <item android:title="Contacts"
-        android:icon="@drawable/ic_contacts"
+        android:icon="@drawable/personnes"
         android:id="@+id/contactsFragment"/>
 
-    <item android:title="Code"
-        android:icon="@drawable/ic_code"
+    <item android:title="Scan"
+        android:icon="@drawable/qrscan"
+        android:id="@+id/QRScannerFragment"/>
+
+    <item android:title="Profile"
+        android:icon="@drawable/outline_account_circle_24"
         android:id="@+id/codeFragment"/>
 </menu>

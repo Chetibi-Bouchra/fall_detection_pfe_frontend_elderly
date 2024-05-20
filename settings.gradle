@@ -21,6 +21,7 @@ dependencyResolutionManagement {
             authentication { basic(BasicAuthentication) }
         }
 
+        maven { url 'https://jitpack.io' }
 
     }
 }

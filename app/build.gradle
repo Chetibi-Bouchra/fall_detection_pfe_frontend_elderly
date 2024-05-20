@@ -67,4 +67,7 @@ dependencies {
     //Mapbox
     implementation 'com.mapbox.maps:android:11.3.1'
 
+    //Scan code QR
+    implementation 'com.github.yuriy-budiyev:code-scanner:2.3.0'
+    
 }
