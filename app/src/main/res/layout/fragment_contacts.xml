@@ -8,43 +8,32 @@
 
     <androidx.cardview.widget.CardView
         android:id="@+id/linear_header_card"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         app:cardCornerRadius="0dp"
         app:cardElevation="10dp"
-        app:layout_constraintTop_toTopOf="parent">
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
 
         <LinearLayout
             android:id="@+id/linear_header"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            android:paddingEnd="20dp"
-            android:paddingTop="10dp">
+            android:paddingTop="10dp"
+            android:paddingEnd="20dp">
 
             <TextView
                 android:id="@+id/contacts_header"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginStart="20dp"
                 android:paddingBottom="10dp"
-                android:fontFamily="@font/myfont"
                 android:text="Contacts"
-                android:textColor="@color/deadly_depth"
-                android:textSize="25sp"
-                android:textStyle="bold"
-                android:layout_marginStart="20dp"/>
-
-            <ImageView
-                android:id="@+id/settings_header"
-                android:layout_width="30dp"
-                android:layout_height="30dp"
-                android:layout_gravity="end|center_vertical"
-
-                android:scaleType="centerCrop"
-                android:src="@drawable/ic_settings" />
+                android:textColor="#BF3131"
+                android:textSize="28sp"
+                android:textStyle="bold" />
         </LinearLayout>
     </androidx.cardview.widget.CardView>
 
