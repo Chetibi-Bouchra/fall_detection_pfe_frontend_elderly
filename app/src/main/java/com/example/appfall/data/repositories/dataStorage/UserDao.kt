@@ -5,22 +5,22 @@ import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Update
-import com.example.appfall.data.daoModels.User
+import com.example.appfall.data.daoModels.UserDaoModel
 
 @Dao
 interface UserDao {
     @Query("select * from users LIMIT 1")
-    fun getUser(): User?
+    fun getUser(): UserDaoModel?
 
     // Insert a new user
     @Insert
-    fun addUser(user: User)
+    fun addUser(user: UserDaoModel)
 
     // Delete a user
     @Delete
-    fun deleteUser(user: User)
+    fun deleteUser(user: UserDaoModel)
 
     //update a user
     @Update
-    fun updateUser(user:User)
+    fun updateUser(user:UserDaoModel)
 }

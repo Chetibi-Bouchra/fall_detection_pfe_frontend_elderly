@@ -10,8 +10,7 @@
         android:id="@+id/qrCodeImageView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:scaleType="centerInside"
-         />
+        android:scaleType="centerInside" />
 
     <TextView
         android:id="@+id/connectTextView"
@@ -22,7 +21,15 @@
         android:fontFamily="@font/myfont"
         android:text="Scannez le code QR pour se connecter"
         android:textColor="@android:color/black"
-        android:textSize="18sp"
-        />
+        android:textSize="18sp" />
+
+    <!-- Add ProgressBar -->
+    <ProgressBar
+        android:id="@+id/progressBar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:indeterminateTint="@color/hot_jazz"
+        android:visibility="gone" />
 
 </FrameLayout>

@@ -4,6 +4,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import okhttp3.*
 import okio.ByteString
+import com.example.appfall.utils.url
 
 class WebSocketManager private constructor() {
     companion object {
@@ -14,7 +15,7 @@ class WebSocketManager private constructor() {
 
         fun connectWebSocket() {
             val client = OkHttpClient()
-            val request = Request.Builder().url("ws://192.168.1.72:3000").build()
+            val request = Request.Builder().url(url).build()
             webSocket = client.newWebSocket(request, object : WebSocketListener() {
                 override fun onOpen(webSocket: WebSocket, response: Response) {
                     super.onOpen(webSocket, response)

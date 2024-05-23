@@ -22,40 +22,42 @@ import java.util.EnumMap
 import android.os.Handler
 import android.telephony.SmsManager
 import android.widget.Toast
+import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
+import com.example.appfall.data.repositories.dataStorage.UserDao
+import com.example.appfall.viewModels.UserViewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import kotlin.random.Random
 
 class CodeFragment : Fragment() {
     private var _binding: FragmentCodeBinding? = null
     private val binding get() = _binding!!
     private var nbMessages:Int = 0
+    private lateinit var token:String
+    private lateinit var phone:String
+    private val viewModel: UserViewModel by viewModels()
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        // Inflate the layout for this fragment
         _binding = FragmentCodeBinding.inflate(inflater, container, false)
 
-        // Generate QR code
-        val content = "0555555555:1234"
-        val width = 1000
-        val height = 1000
-        val qrCodeBitmap = generateQRCode(content, width, height)
+        viewModel.getLocalUser()
+        observeLocalUser()
 
-        // Set QR code bitmap to ImageView
-        binding.qrCodeImageView.setImageBitmap(qrCodeBitmap)
+        binding.progressBar.visibility = View.VISIBLE
 
-        // Connect to WebSocket server
-        WebSocketManager.connectWebSocket()
-
-        // Send request to WebSocket server
-        WebSocketManager.sendMessage("register:eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY2M2VjN2IyNTFmYjNlNGMxNThkOTI2ZiIsImlhdCI6MTcxNTM5MDM4Nn0.CgDkDI_diFOr6P2bTLmihLqRXsfO9f7KRyvSv:0555555555:1235")
-
-        sendSMS("0555529412","test")
 
         return binding.root
     }
 
+
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        observeLocalUser()
         WebSocketManager.receivedMessage.observe(viewLifecycleOwner) { message ->
             println("WebSocket View: $message")
             if (nbMessages == 0) {
@@ -69,6 +71,42 @@ class CodeFragment : Fragment() {
 
         }
 
+    }
+
+    private fun observeLocalUser() {
+        viewModel.localUser.observe(viewLifecycleOwner) { user ->
+
+                if (user != null) {
+                    phone = user.phone
+                    token = user.token
+                }
+
+
+                val codeLength = 6
+                val randomCode = generateRandomCode(codeLength)
+                println("randomCode $randomCode")
+                println("phone $phone")
+                println("token $token")
+                val secretCode = "$phone:$randomCode"
+                val width = 1000
+                val height = 1000
+                val qrCodeBitmap = generateQRCode(secretCode, width, height)
+
+                binding.qrCodeImageView.setImageBitmap(qrCodeBitmap)
+                WebSocketManager.connectWebSocket()
+                WebSocketManager.sendMessage("register:$token:$secretCode")
+                binding.progressBar.visibility = View.GONE
+
+
+        }
+    }
+
+    fun generateRandomCode(length: Int): String {
+        val charPool: List<Char> = ('0'..'9').toList()
+        return (1..length)
+            .map { Random.nextInt(0, charPool.size) }
+            .map(charPool::get)
+            .joinToString("")
     }
 
     private fun showConfirmationDialog(message: String) {

@@ -31,10 +31,10 @@
                 android:id="@+id/text_inscription"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:fontFamily="@font/myfont"
                 android:text="Inscription"
                 android:textColor="@android:color/black"
                 android:textSize="30sp"
-                android:fontFamily="@font/myfont"
                 android:textStyle="bold" />
 
             <RelativeLayout
@@ -45,23 +45,25 @@
                     android:id="@+id/text_no_account"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:fontFamily="@font/myfont"
                     android:text="Vous avez déjè un compte ?"
                     android:textColor="@android:color/black"
-                    android:fontFamily="@font/myfont" />
+                    android:textSize="12sp"/>
 
                 <!-- Clickable Connexion -->
                 <TextView
                     android:id="@+id/text_login_action"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_toEndOf="@id/text_no_account"
                     android:layout_marginStart="4dp"
+                    android:layout_toEndOf="@id/text_no_account"
+                    android:clickable="true"
+                    android:fontFamily="@font/myfont"
+                    android:onClick="onLoginClicked"
                     android:text="Connexion"
                     android:textColor="@android:color/holo_red_dark"
-                    android:textStyle="bold"
-                    android:clickable="true"
-                    android:onClick="onLoginClicked"
-                    android:fontFamily="@font/myfont" />
+                    android:textSize="12sp"
+                    android:textStyle="bold"/>
             </RelativeLayout>
 
             <EditText
@@ -69,14 +71,15 @@
                 android:layout_width="match_parent"
                 android:layout_height="50dp"
                 android:layout_marginTop="50dp"
-                android:hint="Nom"
                 android:background="@drawable/text_field"
+                android:fontFamily="@font/myfont"
+                android:hint="Nom"
                 android:inputType="text"
                 android:paddingStart="8dp"
-                android:paddingEnd="8dp"
                 android:paddingTop="4dp"
-                android:paddingBottom="4dp"
-                android:fontFamily="@font/myfont" />
+                android:paddingEnd="8dp"
+                android:paddingBottom="4dp" />
+
 
             <!-- Previous text fields -->
             <EditText
@@ -84,43 +87,69 @@
                 android:layout_width="match_parent"
                 android:layout_height="50dp"
                 android:layout_marginTop="25dp"
-                android:hint="Numéro de téléphone"
                 android:background="@drawable/text_field"
+                android:fontFamily="@font/myfont"
+                android:hint="Numéro de téléphone"
                 android:inputType="phone"
                 android:paddingStart="8dp"
-                android:paddingEnd="8dp"
                 android:paddingTop="4dp"
-                android:paddingBottom="4dp"
-                android:fontFamily="@font/myfont" />
+                android:paddingEnd="8dp"
+                android:paddingBottom="4dp" />
+
+            <TextView
+                android:id="@+id/phone_warning"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="Veuillez commencer le numéro par un 0 suivi par 9 chiffres"
+                android:textColor="@android:color/holo_red_dark"
+                android:visibility="gone"/>
 
             <EditText
                 android:id="@+id/edit_text_password"
                 android:layout_width="match_parent"
                 android:layout_height="50dp"
                 android:layout_marginTop="25dp"
-                android:hint="Mot de passe"
                 android:background="@drawable/text_field"
+                android:fontFamily="@font/myfont"
+                android:hint="Mot de passe"
                 android:inputType="textPassword"
                 android:paddingStart="8dp"
-                android:paddingEnd="8dp"
                 android:paddingTop="4dp"
-                android:paddingBottom="4dp"
-                android:fontFamily="@font/myfont" />
+                android:paddingEnd="8dp"
+                android:paddingBottom="4dp" />
 
+            <TextView
+                android:id="@+id/password_warning"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="Votre mot de passe doit contenir au minimum 8 caractères"
+                android:textColor="@android:color/holo_red_dark"
+                android:visibility="gone"/>
 
             <EditText
                 android:id="@+id/edit_text_confirm_password"
                 android:layout_width="match_parent"
                 android:layout_height="50dp"
                 android:layout_marginTop="25dp"
-                android:hint="Confirmer le mot de passe"
                 android:background="@drawable/text_field"
+                android:fontFamily="@font/myfont"
+                android:hint="Confirmer le mot de passe"
                 android:inputType="textPassword"
                 android:paddingStart="8dp"
-                android:paddingEnd="8dp"
                 android:paddingTop="4dp"
-                android:paddingBottom="4dp"
-                android:fontFamily="@font/myfont" />
+                android:paddingEnd="8dp"
+                android:paddingBottom="4dp" />
+
+            <TextView
+                android:id="@+id/confirm_password_warning"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="Les mots de passe ne correspondent pas"
+                android:textColor="@android:color/holo_red_dark"
+                android:visibility="gone"/>
 
             <Button
                 android:id="@+id/button_signup"
@@ -129,9 +158,9 @@
                 android:layout_marginTop="75dp"
                 android:background="@drawable/rounded_button"
                 android:elevation="4dp"
+                android:fontFamily="@font/myfont"
                 android:text="S'inscrire"
-                android:textColor="@android:color/white"
-                android:fontFamily="@font/myfont" />
+                android:textColor="@android:color/white" />
 
 
 
