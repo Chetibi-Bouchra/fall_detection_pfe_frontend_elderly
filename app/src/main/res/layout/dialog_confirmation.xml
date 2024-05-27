@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="50dp"
+    android:background="@drawable/dialog_background"
+    android:gravity="center">
+
+    <TextView
+        android:id="@+id/dialogTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Warning!"
+        android:textStyle="bold"
+        android:textColor="@color/black"
+        android:textSize="24sp"
+        android:gravity="center"
+        android:paddingBottom="8dp"
+        android:layout_gravity="center"/>
+
+    <TextView
+        android:id="@+id/dialogMessage"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="En cliquant sur se déconnecter, vous n'allez plus recevoir d'alertes de cette personne"
+        android:textSize="16sp"
+        android:gravity="center"
+        android:layout_gravity="center"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="16dp"
+        android:gravity="center">
+
+        <Button
+            android:id="@+id/dialogConfirmButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Confirm" />
+
+        <Space
+            android:layout_width="16dp"
+            android:layout_height="wrap_content"/>
+
+        <Button
+            android:id="@+id/dialogCancelButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Cancel"
+            android:textColor="@android:color/holo_red_dark"
+
+            android:backgroundTint="@android:color/white"/>
+    </LinearLayout>
+</LinearLayout>
