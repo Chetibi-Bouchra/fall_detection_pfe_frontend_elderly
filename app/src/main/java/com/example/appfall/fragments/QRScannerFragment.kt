@@ -1,6 +1,7 @@
 package com.example.appfall.fragments
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -13,6 +14,7 @@ import com.budiyev.android.codescanner.DecodeCallback
 import com.budiyev.android.codescanner.ErrorCallback
 import com.budiyev.android.codescanner.ScanMode
 import com.example.appfall.R
+import com.example.appfall.websockets.WebSocketManager
 
 class QRScannerFragment: Fragment() {
     private lateinit var codeScanner: CodeScanner
@@ -23,6 +25,9 @@ class QRScannerFragment: Fragment() {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+
+        WebSocketManager.connectWebSocket()
+
         val scannerView = view.findViewById<CodeScannerView>(R.id.scanner_view)
         val activity = requireActivity()
         codeScanner = CodeScanner(activity, scannerView)
@@ -37,6 +42,17 @@ class QRScannerFragment: Fragment() {
         codeScanner.decodeCallback = DecodeCallback {
             activity.runOnUiThread {
                 Toast.makeText(activity, it.text, Toast.LENGTH_LONG).show()
+                WebSocketManager.sendMessage("connect:eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY2M2Q2MzM3YjkxNGE1YTM3ODJlY2YyYiIsImlhdCI6MTcxNTI5OTEyN30.mJjNgnchI5NibSx_8E3fjDJfPM9iCqaAz4HgDqc4qZA:maissa1:${it.text}")
+
+                WebSocketManager.receivedMessage.observe(viewLifecycleOwner) { message ->
+                    println("WebSocket View: $message")
+                    if(message == "no"){
+                        Toast.makeText(activity, message, Toast.LENGTH_LONG)
+                        Log.d("received message", message)
+                    }
+
+                }
+
             }
         }
 
@@ -50,6 +66,8 @@ class QRScannerFragment: Fragment() {
         scannerView.setOnClickListener {
             codeScanner.startPreview()
         }
+
+
     }
 
     override fun onResume() {

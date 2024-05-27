@@ -1,11 +1,13 @@
 package com.example.appfall.fragments
 
+import android.app.AlertDialog
 import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
+import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import com.example.appfall.R
@@ -36,11 +38,15 @@ class MapFragment : Fragment() {
 
         bouton = view.findViewById(R.id.bouton)
         bouton.setOnClickListener {
-            viewModel.onButtonClick() // Appel de la fonction dans le ViewModel lors du clic sur le bouton
+            if (viewModel.isConnected.value == false) {
+                showConfirmationDialog()
+            } else {
+                viewModel.onButtonClick()
+            }
         }
 
         viewModel.isConnected.observe(viewLifecycleOwner) { isConnected ->
-            updateBoutonText(isConnected) // Met à jour le texte du bouton en fonction de l'état observé dans le ViewModel
+            updateBoutonText(isConnected)
         }
 
         viewModel.mapData.observe(viewLifecycleOwner) { mapData ->
@@ -102,5 +108,34 @@ class MapFragment : Fragment() {
     private fun updateBoutonText(isConnected: Boolean) {
         bouton.text = if (isConnected) "Connecter" else "Déconnecter"
     }
+
+    // Affiche une boîte de dialogue de confirmation pour la déconnexion
+    private fun showConfirmationDialog() {
+        val dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_confirmation, null)
+        val dialogBuilder = AlertDialog.Builder(requireContext())
+            .setView(dialogView)
+            .create()
+
+        // Centrer le titre et ajuster la largeur de la boîte de dialogue
+        dialogBuilder.window?.setBackgroundDrawableResource(android.R.color.transparent)
+        dialogBuilder.show()
+        dialogBuilder.window?.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+
+        val dialogTitle = dialogView.findViewById<TextView>(R.id.dialogTitle)
+        val dialogMessage = dialogView.findViewById<TextView>(R.id.dialogMessage)
+        val confirmButton = dialogView.findViewById<Button>(R.id.dialogConfirmButton)
+        val cancelButton = dialogView.findViewById<Button>(R.id.dialogCancelButton)
+
+        // Configurer les actions des boutons
+        confirmButton.setOnClickListener {
+            viewModel.onButtonClick()
+            dialogBuilder.dismiss()
+        }
+
+        cancelButton.setOnClickListener {
+            dialogBuilder.dismiss()
+        }
+    }
+
 
 }

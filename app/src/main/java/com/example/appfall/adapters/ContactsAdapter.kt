@@ -29,7 +29,7 @@ class ContactsAdapter():RecyclerView.Adapter<ContactsAdapter.ContactsViewHolder>
                 .load(contact.urlImage)
                 .into(contactImage)*/
             contactName.text = contact.name
-            contactPhone.text = contact.phone
+            //contactPhone.text = contact.phone
         }
 
     }
