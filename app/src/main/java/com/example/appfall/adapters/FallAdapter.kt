@@ -1,10 +1,11 @@
 package com.example.appfall.adapters
 
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
+import com.example.appfall.R
 import com.example.appfall.data.models.Fall
-import com.example.appfall.databinding.ContactBinding
 import com.example.appfall.databinding.FallBinding
 
 
@@ -32,14 +33,26 @@ class FallAdapter : RecyclerView.Adapter<FallAdapter.FallViewHolder>() {
 
     inner class FallViewHolder(private val binding: FallBinding) :
         RecyclerView.ViewHolder(binding.root) {
-        fun bind(fall: Fall) {
-            binding.apply {
-                // Example of how to bind the data to the views
-                //fallId.text = fall._id
-                //fallStatus.text = fall.status
-                //fallDate.text = fall.date.toString() // Format the date as needed
-                //fallPlace.text = fall.place
+
+        private var isExpanded = false
+
+        init {
+            binding.root.setOnClickListener {
+                isExpanded = !isExpanded
+                binding.expandedLayout.visibility = if (isExpanded) View.VISIBLE else View.GONE
+                binding.expandIcon.setImageResource(
+                    if (isExpanded) R.drawable.ic_expand_less else R.drawable.ic_expand_more
+                )
             }
+        }
+
+        fun bind(fall: Fall) {
+            binding.fall = fall // This binds the 'fall' variable to the layout
+            binding.executePendingBindings()
+            binding.expandedLayout.visibility = if (isExpanded) View.VISIBLE else View.GONE
+            binding.expandIcon.setImageResource(
+                if (isExpanded) R.drawable.ic_expand_less else R.drawable.ic_expand_more
+            )
         }
     }
 }

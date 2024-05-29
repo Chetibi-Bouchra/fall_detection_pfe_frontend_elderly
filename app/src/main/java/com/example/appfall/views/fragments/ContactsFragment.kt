@@ -7,6 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.appfall.adapters.ContactsAdapter
 import com.example.appfall.databinding.FragmentContactsBinding
@@ -20,8 +21,12 @@ class ContactsFragment : Fragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         contactsViewModel = ViewModelProvider(this)[ContactsViewModel::class.java]
-        contactsAdapter = ContactsAdapter()
+        contactsAdapter = ContactsAdapter { contactId -> // Modification 3: Set up the adapter with a lambda
+            val action = ContactsFragmentDirections.actionContactsFragmentToFallsFragment(contactId)
+            findNavController().navigate(action)
+        }
     }
+
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,

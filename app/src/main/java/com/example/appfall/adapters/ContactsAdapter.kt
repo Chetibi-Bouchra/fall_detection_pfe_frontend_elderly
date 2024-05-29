@@ -8,7 +8,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.appfall.databinding.ContactBinding
 import com.example.appfall.data.models.ConnectedSupervisor
 
-class ContactsAdapter : RecyclerView.Adapter<ContactsAdapter.ContactsViewHolder>() {
+class ContactsAdapter ( private val onContactClick: (String) -> Unit) : RecyclerView.Adapter<ContactsAdapter.ContactsViewHolder>() {
     private var contactsList = ArrayList<ConnectedSupervisor>()
 
     fun setContacts(contactsList: ArrayList<ConnectedSupervisor>) {
@@ -38,6 +38,8 @@ class ContactsAdapter : RecyclerView.Adapter<ContactsAdapter.ContactsViewHolder>
                     .load(contact.urlImage)
                     .into(contactImage)*/
                 contactName.text = contact.name
+
+                root.setOnClickListener { onContactClick(contact._id) }
             }
         }
     }

@@ -9,7 +9,14 @@
         android:id="@+id/contactsFragment"
         android:name="com.example.appfall.views.fragments.ContactsFragment"
         android:label="fragment_contacts"
-        tools:layout="@layout/fragment_contacts" />
+        tools:layout="@layout/fragment_contacts" >
+        <action
+            android:id="@+id/action_contactsFragment_to_fallsFragment"
+            app:destination="@id/fallsFragment" />
+        <argument
+            android:name="userId"
+            app:argType="string" />
+    </fragment>
     <fragment
         android:id="@+id/codeFragment"
         android:name="com.example.appfall.views.fragments.CodeFragment"
@@ -30,4 +37,13 @@
         android:name="com.example.appfall.views.fragments.ProfilFragment"
         android:label="fragment_profil"
         tools:layout="@layout/fragment_profil" />
+    <fragment
+        android:id="@+id/fallsFragment"
+        android:name="com.example.appfall.views.fragments.FallsFragment"
+        android:label="fragment_falls"
+        tools:layout="@layout/fragment_falls" >
+        <argument
+            android:name="userId"
+            app:argType="string" />
+    </fragment>
 </navigation>

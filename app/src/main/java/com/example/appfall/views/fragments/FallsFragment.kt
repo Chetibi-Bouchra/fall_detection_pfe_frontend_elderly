@@ -40,7 +40,8 @@ class FallsFragment : Fragment() {
             adapter = fallAdapter
         }
 
-        val userId = "1" // replace with actual userId
+        //val userId = "1"
+        val userId = arguments?.getString("userId") ?: return
         fallViewModel.getFalls(userId)
 
         observeFalls()
