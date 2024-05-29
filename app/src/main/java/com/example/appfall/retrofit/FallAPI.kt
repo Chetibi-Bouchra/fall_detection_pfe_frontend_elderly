@@ -1,9 +1,9 @@
 package com.example.appfall.retrofit
 
-import com.example.appfall.models.ConnectedSupervisorsResponse
-import com.example.appfall.models.LoginResponse
-import com.example.appfall.models.User
-import com.example.appfall.models.UserCredential
+import com.example.appfall.data.models.ConnectedSupervisorsResponse
+import com.example.appfall.data.models.LoginResponse
+import com.example.appfall.data.models.User
+import com.example.appfall.data.models.UserCredential
 import retrofit2.Call
 import retrofit2.http.Body
 import retrofit2.http.GET

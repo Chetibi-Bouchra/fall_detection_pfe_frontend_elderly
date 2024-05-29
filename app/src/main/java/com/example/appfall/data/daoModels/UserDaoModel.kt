@@ -1,4 +1,4 @@
-package com.example.appfall.daoModels
+package com.example.appfall.data.daoModels
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey

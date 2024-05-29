@@ -5,7 +5,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.example.appfall.R
-import com.example.appfall.models.MapData
+import com.example.appfall.data.models.MapData
 import com.mapbox.geojson.Point
 
 

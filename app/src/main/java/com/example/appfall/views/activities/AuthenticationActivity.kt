@@ -1,4 +1,4 @@
-package com.example.appfall.activities
+package com.example.appfall.views.activities
 
 import android.content.Intent
 import android.os.Bundle
@@ -8,8 +8,8 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
 import com.example.appfall.R
-import com.example.appfall.repositories.AppDatabase
-import com.example.appfall.repositories.dataStorage.UserDao
+import com.example.appfall.data.repositories.AppDatabase
+import com.example.appfall.data.repositories.dataStorage.UserDao
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext

@@ -4,7 +4,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".fragments.MapFragment">
+    tools:context=".views.fragments.MapFragment">
 
     <!-- Top bar avec effet de CardView -->
     <androidx.cardview.widget.CardView

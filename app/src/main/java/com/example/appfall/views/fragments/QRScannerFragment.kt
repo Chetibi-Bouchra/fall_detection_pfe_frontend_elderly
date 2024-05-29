@@ -1,4 +1,4 @@
-package com.example.appfall.fragments
+package com.example.appfall.views.fragments
 
 import android.os.Bundle
 import android.util.Log

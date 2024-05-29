@@ -1,11 +1,11 @@
-package com.example.appfall.repositories.dataStorage
+package com.example.appfall.data.repositories.dataStorage
 
 import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Update
-import com.example.appfall.daoModels.UserDaoModel
+import com.example.appfall.data.daoModels.UserDaoModel
 
 @Dao
 interface UserDao {
@@ -22,5 +22,5 @@ interface UserDao {
 
     //update a user
     @Update
-    fun updateUser(user:UserDaoModel)
+    fun updateUser(user: UserDaoModel)
 }

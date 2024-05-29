@@ -1,4 +1,4 @@
-package com.example.appfall.models
+package com.example.appfall.data.models
 
 data class LoginResponse(
     val accessToken: String,

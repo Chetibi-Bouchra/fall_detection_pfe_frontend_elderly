@@ -7,27 +7,27 @@
 
     <fragment
         android:id="@+id/contactsFragment"
-        android:name="com.example.appfall.fragments.ContactsFragment"
+        android:name="com.example.appfall.views.fragments.ContactsFragment"
         android:label="fragment_contacts"
         tools:layout="@layout/fragment_contacts" />
     <fragment
         android:id="@+id/codeFragment"
-        android:name="com.example.appfall.fragments.CodeFragment"
+        android:name="com.example.appfall.views.fragments.CodeFragment"
         android:label="fragment_code"
         tools:layout="@layout/fragment_code" />
     <fragment
         android:id="@+id/mapFragment"
-        android:name="com.example.appfall.fragments.MapFragment"
+        android:name="com.example.appfall.views.fragments.MapFragment"
         android:label="fragment_map"
         tools:layout="@layout/fragment_map" />
     <fragment
         android:id="@+id/QRScannerFragment"
-        android:name="com.example.appfall.fragments.QRScannerFragment"
+        android:name="com.example.appfall.views.fragments.QRScannerFragment"
         android:label="fragment_qr_scanner"
         tools:layout="@layout/fragment_qr_scanner" />
     <fragment
         android:id="@+id/profilFragment"
-        android:name="com.example.appfall.fragments.ProfilFragment"
+        android:name="com.example.appfall.views.fragments.ProfilFragment"
         android:label="fragment_profil"
         tools:layout="@layout/fragment_profil" />
 </navigation>

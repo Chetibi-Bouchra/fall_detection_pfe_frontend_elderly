@@ -1,4 +1,4 @@
-package com.example.appfall.fragments
+package com.example.appfall.views.fragments
 
 import android.content.Intent
 import android.graphics.drawable.Drawable
@@ -19,10 +19,10 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.findNavController
 import com.example.appfall.R
-import com.example.appfall.models.UserCredential
+import com.example.appfall.data.models.UserCredential
 import com.example.appfall.databinding.FragmentSignInBinding
 import com.example.appfall.viewModels.UserViewModel
-import com.example.appfall.activities.MainActivity
+import com.example.appfall.views.activities.MainActivity
 
 
 class SignInFragment : Fragment() {

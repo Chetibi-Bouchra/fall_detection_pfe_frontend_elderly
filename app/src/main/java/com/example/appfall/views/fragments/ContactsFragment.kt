@@ -1,8 +1,7 @@
-package com.example.appfall.fragments
+package com.example.appfall.views.fragments
 
 import com.example.appfall.viewModels.ContactsViewModel
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup

@@ -1,4 +1,4 @@
-package com.example.appfall.models
+package com.example.appfall.data.models
 
 import com.mapbox.geojson.Point
 
