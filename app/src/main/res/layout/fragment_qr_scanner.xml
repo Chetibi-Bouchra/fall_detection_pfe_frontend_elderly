@@ -38,6 +38,28 @@
         </LinearLayout>
     </androidx.cardview.widget.CardView>
 
+    <RelativeLayout
+        android:id="@+id/waiting_view"
+        android:layout_width="300dp"
+        android:layout_height="300dp"
+        android:background="#77000000"
+        android:visibility="invisible"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:gravity="center">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="En attente..."
+            android:textColor="#FFFFFF"
+            android:textSize="18sp"/>
+
+    </RelativeLayout>
+
+
     <!-- Zone de scan dans un rectangle aux bords noirs -->
     <RelativeLayout
         android:id="@+id/scannerContainer"

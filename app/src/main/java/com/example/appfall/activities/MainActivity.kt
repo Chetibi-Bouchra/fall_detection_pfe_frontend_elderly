@@ -1,4 +1,4 @@
-package com.example.appfall.activites
+package com.example.appfall.activities
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
