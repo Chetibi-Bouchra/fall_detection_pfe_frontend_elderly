@@ -11,7 +11,7 @@ import retrofit2.http.Header
 import retrofit2.http.POST
 
 interface FallAPI {
-    @GET("users/getContacts")
+    @GET("supervisors/getContacts")
     fun getContacts(@Header("Authorization") token: String): Call<ConnectedSupervisorsResponse>
 
 
@@ -24,4 +24,6 @@ interface FallAPI {
     fun loginUser(
         @Body request: UserCredential,
     ): Call<LoginResponse>
+
+
 }
