@@ -1,0 +1,147 @@
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".fragments.SignInFragment">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <ProgressBar
+            android:id="@+id/login_progress_bar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:indeterminateTint="@color/hot_jazz"
+            android:visibility="gone" />
+
+        <!-- Square container with light radius -->
+        <LinearLayout
+            android:id="@+id/container"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:layout_margin="16dp"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <TextView
+                android:id="@+id/text_connexion"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/myfont"
+                android:text="Connexion"
+                android:textColor="@android:color/black"
+                android:textSize="30sp"
+                android:textStyle="bold" />
+
+            <EditText
+                android:id="@+id/edit_text_phone"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:layout_marginTop="25dp"
+                android:background="@drawable/text_field"
+                android:fontFamily="@font/myfont"
+                android:hint="Numéro de téléphone"
+                android:inputType="phone"
+                android:paddingStart="8dp"
+                android:paddingTop="4dp"
+                android:paddingEnd="8dp"
+                android:paddingBottom="4dp" />
+
+            <TextView
+                android:id="@+id/phone_warning"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="Veuillez commencer le numéro par un 0 suivi par 9 chiffres"
+                android:textColor="@android:color/holo_red_dark"
+                android:visibility="gone"/>
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="25dp">
+
+                <EditText
+                    android:id="@+id/edit_text_password"
+                    android:layout_width="match_parent"
+                    android:layout_height="50dp"
+                    android:background="@drawable/text_field"
+                    android:fontFamily="@font/myfont"
+                    android:hint="Mot de passe"
+                    android:inputType="textPassword"
+                    android:paddingStart="8dp"
+                    android:paddingTop="4dp"
+                    android:paddingEnd="40dp"
+                    android:paddingBottom="4dp"/>
+
+                <ImageView
+                    android:id="@+id/password_toggle"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:layout_alignParentEnd="true"
+                    android:layout_centerVertical="true"
+                    android:layout_marginEnd="8dp"
+                    android:contentDescription="Password visibility"
+                    android:src="@drawable/ic_hidepassword" />
+
+            </RelativeLayout>
+
+            <TextView
+                android:id="@+id/password_warning"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="Votre mot de passe doit contenir au minimum 8 caractères"
+                android:textColor="@android:color/holo_red_dark"
+                android:visibility="gone"/>
+
+            <Button
+                android:id="@+id/button_login"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="50dp"
+                android:background="@drawable/rounded_button"
+                android:elevation="4dp"
+                android:fontFamily="@font/myfont"
+                android:text="Se connecter"
+                android:textColor="@android:color/white" />
+
+            <!-- Register text -->
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:gravity="center_horizontal">
+
+                <TextView
+                    android:id="@+id/text_register"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/myfont"
+                    android:text="Vous n'avez pas de compte ?"
+                    android:textColor="@android:color/black"
+                    android:textSize="12sp" />
+
+                <!-- Clickable S'inscrire -->
+                <TextView
+                    android:id="@+id/text_register_action"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="4dp"
+                    android:layout_toEndOf="@id/text_register"
+                    android:clickable="true"
+                    android:fontFamily="@font/myfont"
+                    android:text="S'inscrire"
+                    android:textColor="@android:color/holo_red_dark"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
+            </RelativeLayout>
+
+        </LinearLayout>
+
+    </RelativeLayout>
+
+</FrameLayout>
