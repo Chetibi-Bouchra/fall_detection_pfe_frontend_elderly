@@ -3,6 +3,7 @@ package com.example.appfall.views.fragments
 import androidx.fragment.app.Fragment
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -35,14 +36,21 @@ class FallsFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+
+
         binding.fallsList.apply {
             layoutManager = LinearLayoutManager(requireContext())
             adapter = fallAdapter
         }
 
-        //val userId = "1"
-        val userId = arguments?.getString("userId") ?: return
+        val userId = "66573f5e99546d34666ac005"
+        //val userId = arguments?.getString("userId") ?: return
+        val id = arguments?.getString("userId") ?: return
+        Log.d("FallsFragmentUserId","$id")
+        Log.d("FallsFragmentUserId","*********************************")
+
         fallViewModel.getFalls(userId)
+
 
         observeFalls()
     }

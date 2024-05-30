@@ -30,7 +30,7 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintEnd_toStartOf="@+id/expandIcon"
-                app:layout_constraintHorizontalBias="0" />
+                app:layout_constraintHorizontal_bias="0" />
 
             <ImageView
                 android:id="@+id/expandIcon"
@@ -55,7 +55,7 @@
                     android:id="@+id/fallDate"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@{`Date: ` + fall.date}"
+                    android:text="@{`Date: ` + fall.createdAt}"
                     tools:text="Date: 2023-05-29" />
 
                 <TextView

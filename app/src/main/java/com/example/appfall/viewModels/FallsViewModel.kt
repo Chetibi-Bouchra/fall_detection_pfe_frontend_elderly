@@ -26,7 +26,8 @@ class FallsViewModel(application: Application) : AndroidViewModel(application) {
                 if (response.isSuccessful) {
                     val fallResponse = response.body()
                     fallResponse?.let {
-                        mutableFallsList.postValue(it.falls)
+                        mutableFallsList.postValue(it.data)
+                        Log.d("FallsViewModel", "Données de chute reçues: $it")
                     } ?: run {
                         Log.d("FallViewModel", "Response body is null")
                     }

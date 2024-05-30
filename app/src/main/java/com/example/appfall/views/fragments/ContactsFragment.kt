@@ -12,6 +12,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.appfall.adapters.ContactsAdapter
 import com.example.appfall.databinding.FragmentContactsBinding
 
+
 class ContactsFragment : Fragment() {
 
     private lateinit var binding: FragmentContactsBinding
@@ -21,7 +22,7 @@ class ContactsFragment : Fragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         contactsViewModel = ViewModelProvider(this)[ContactsViewModel::class.java]
-        contactsAdapter = ContactsAdapter { contactId -> // Modification 3: Set up the adapter with a lambda
+        contactsAdapter = ContactsAdapter { contactId ->
             val action = ContactsFragmentDirections.actionContactsFragmentToFallsFragment(contactId)
             findNavController().navigate(action)
         }
