@@ -5,11 +5,19 @@ import android.net.Uri
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
+import com.example.appfall.R
 import com.example.appfall.databinding.ContactBinding
 import com.example.appfall.data.models.ConnectedSupervisor
+import kotlin.random.Random
 
 class ContactsAdapter : RecyclerView.Adapter<ContactsAdapter.ContactsViewHolder>() {
     private var contactsList = ArrayList<ConnectedSupervisor>()
+    private val imageResources = arrayOf(
+        R.drawable.image1,
+        R.drawable.image2,
+
+    )
 
     fun setContacts(contactsList: ArrayList<ConnectedSupervisor>) {
         this.contactsList = contactsList
@@ -47,11 +55,12 @@ class ContactsAdapter : RecyclerView.Adapter<ContactsAdapter.ContactsViewHolder>
 
         fun bind(contact: ConnectedSupervisor) {
             binding.apply {
-                /*Glide.with(holder.itemView)
-                    .load(contact.urlImage)
-                    .into(contactImage)*/
                 contactName.text = contact.name
                 contactPhone.text = contact.phone
+
+                // Select a random image from the predefined set and load it using Glide
+                val randomImageResId = imageResources[Random.nextInt(imageResources.size)]
+                Glide.with(itemView.context).load(randomImageResId).into(contactImage)
             }
         }
     }

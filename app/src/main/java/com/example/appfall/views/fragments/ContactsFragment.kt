@@ -10,6 +10,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.appfall.adapters.ContactsAdapter
 import com.example.appfall.databinding.FragmentContactsBinding
+import com.example.appfall.services.NetworkHelper
 
 class ContactsFragment : Fragment() {
 
@@ -40,14 +41,25 @@ class ContactsFragment : Fragment() {
         }
 
         observeContacts()
+        loadContacts()
+    }
+
+    private fun loadContacts() {
+        binding.progressBar.visibility = View.VISIBLE
+        contactsViewModel.getContacts()
     }
 
     private fun observeContacts() {
         contactsViewModel.observeContactsList().observe(viewLifecycleOwner) { contacts ->
-            contacts?.let {
-                contactsAdapter.setContacts(ArrayList(it))
+            binding.progressBar.visibility = View.GONE
+            if (contacts.isNullOrEmpty()) {
+                binding.contactsList.visibility = View.GONE
+                binding.noContactsText.visibility = View.VISIBLE
+            } else {
+                binding.noContactsText.visibility = View.GONE
+                binding.contactsList.visibility = View.VISIBLE
+                contactsAdapter.setContacts(ArrayList(contacts))
             }
         }
     }
 }
-

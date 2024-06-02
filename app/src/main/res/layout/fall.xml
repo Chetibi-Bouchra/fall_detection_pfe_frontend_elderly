@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:card_view="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="12dp"
+    android:padding="16dp"
+    card_view:cardCornerRadius="12dp"
+    card_view:cardElevation="6dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="8dp">
+
+        <!-- Visible part of the view -->
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="8dp">
+
+            <!-- Fall Title -->
+            <TextView
+                android:id="@+id/fall_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/myfont"
+                android:text="Fall"
+                android:textColor="@android:color/black"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <!-- Fall Status -->
+            <TextView
+                android:id="@+id/fall_status"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignBaseline="@id/fall_title"
+                android:layout_alignParentEnd="true"
+                android:layout_marginEnd="48dp"
+                android:fontFamily="@font/myfont"
+                android:text="Fall Status"
+                android:textColor="@android:color/black"
+                android:textSize="12sp" />
+
+            <!-- Location Icon -->
+            <ImageView
+                android:id="@+id/location_icon"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/fall_title"
+                android:layout_alignParentStart="true"
+                android:layout_marginTop="8dp"
+                android:contentDescription="Location Icon"
+                android:src="@drawable/ic_location" />
+
+            <!-- Location Text -->
+            <TextView
+                android:id="@+id/fall_location"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/fall_title"
+                android:layout_marginStart="8dp"
+                android:layout_marginTop="8dp"
+                android:layout_toEndOf="@id/location_icon"
+                android:fontFamily="@font/myfont"
+                android:text="Location"
+                android:textColor="@android:color/holo_blue_dark"
+                android:textSize="10sp" />
+
+            <!-- Expand Arrow -->
+            <ImageView
+                android:id="@+id/expand_arrow"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true"
+                android:contentDescription="Expand/Collapse"
+                android:src="@drawable/ic_expand_arrow" />
+        </RelativeLayout>
+
+        <!-- Date and Time -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="40dp"
+            android:gravity="end"
+            android:orientation="horizontal"
+            android:paddingTop="8dp">
+
+            <!-- Calendar Icon -->
+            <ImageView
+                android:id="@+id/calendar_icon"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:contentDescription="Calendar Icon"
+                android:src="@drawable/ic_calendar" />
+
+            <!-- Date -->
+            <TextView
+                android:id="@+id/fall_date"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:fontFamily="@font/myfont"
+                android:text="Date"
+                android:textColor="@android:color/black"
+                android:textSize="12sp" />
+
+            <!-- Clock Icon -->
+            <ImageView
+                android:id="@+id/clock_icon"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:contentDescription="Clock Icon"
+                android:src="@drawable/ic_clock" />
+
+            <!-- Time -->
+            <TextView
+                android:id="@+id/fall_time"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:fontFamily="@font/myfont"
+                android:text="Time"
+                android:textColor="@android:color/black"
+                android:textSize="12sp" />
+        </LinearLayout>
+
+        <!-- Hidden part of the view -->
+        <LinearLayout
+            android:id="@+id/expandable_view"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:gravity="center_horizontal"
+            android:orientation="horizontal"
+            android:visibility="gone"
+            >
+
+            <!-- Button Sauvé -->
+            <Button
+                android:id="@+id/btn_rescued"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:background="@drawable/rounded_button"
+                android:fontFamily="@font/myfont"
+                android:text="Sauvé"
+                android:textColor="@android:color/white"
+                android:visibility="gone"
+               />
+
+            <!-- Button Fausse -->
+            <Button
+                android:id="@+id/btn_false"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/rounded_button_filter_empty"
+                android:fontFamily="@font/myfont"
+                android:text="Fausse"
+                android:textColor="@android:color/black"
+                android:visibility="gone"/>
+
+            <!-- TextView for Showing Status -->
+            <TextView
+                android:id="@+id/status_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/myfont"
+                android:text="Status"
+                android:textColor="@android:color/black"
+                android:visibility="gone"/>
+        </LinearLayout>
+    </LinearLayout>
+</androidx.cardview.widget.CardView>

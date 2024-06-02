@@ -32,13 +32,13 @@
                 android:paddingBottom="10dp"
                 android:text="Contacts"
                 android:textColor="@color/deadly_depth"
-                android:textSize="25sp"
+                android:textSize="18sp"
                 android:textStyle="bold"/>
 
             <ImageView
                 android:id="@+id/settings_header"
-                android:layout_width="30dp"
-                android:layout_height="30dp"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
                 android:layout_alignParentEnd="true"
                 android:layout_alignParentRight="true"
                 android:layout_centerVertical="true"

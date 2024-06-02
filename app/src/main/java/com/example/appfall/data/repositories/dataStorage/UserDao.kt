@@ -17,10 +17,18 @@ interface UserDao {
     fun addUser(user: UserDaoModel)
 
     // Delete a user
-    @Delete
-    fun deleteUser(user: UserDaoModel)
+    /*@Delete
+    fun deleteUser(user: UserDaoModel)*/
+
+    @Query("DELETE FROM users")
+    fun deleteUser()
+
 
     //update a user
     @Update
     fun updateUser(user:UserDaoModel)
+
+    /*@Query("UPDATE users SET name = :newName LIMIT 1")
+    fun updateName(newName: String)*/
+
 }

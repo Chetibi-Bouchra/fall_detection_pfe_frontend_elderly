@@ -3,6 +3,7 @@ package com.example.appfall.views.activities
 
 import android.content.Intent
 import android.os.Bundle
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
@@ -45,18 +46,18 @@ class MainActivity : AppCompatActivity() {
 
         // Set up destination changed listener to update header title
         navController.addOnDestinationChangedListener { _, destination, _ ->
-            // Update header title based on destination
             when (destination.id) {
                 R.id.contactsFragment -> {
-                    // Update header title to "Contacts" when ContactsFragment is displayed
                     updateHeaderTitle("Contacts")
                 }
                 R.id.codeFragment -> {
-                    // Update header title to "Other" when OtherFragment is displayed
                     updateHeaderTitle("QR Code")
                 }
-                // Add more cases for other fragments as needed
             }
+        }
+
+        binding.settingsHeader.setOnClickListener {
+            startActivity(Intent(this, ParametersActivity::class.java))
         }
     }
 

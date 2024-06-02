@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".views.fragments.FallsFragment">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <!-- Buttons -->
+        <LinearLayout
+            android:id="@+id/buttons_layout"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="8dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <Button
+                android:id="@+id/btn_all"
+                android:layout_width="wrap_content"
+                android:layout_height="48dp"
+                android:layout_marginStart="4dp"
+                android:layout_marginEnd="4dp"
+                android:layout_weight="1"
+                android:background="@drawable/rounded_button_filter"
+                android:fontFamily="@font/myfont"
+                android:padding="0dp"
+                android:text="Tous"
+                android:textAllCaps="false"
+
+                android:textSize="12sp"/>
+
+            <Button
+                android:id="@+id/btn_active"
+                android:layout_width="wrap_content"
+                android:layout_height="48dp"
+                android:layout_marginStart="4dp"
+                android:layout_marginEnd="4dp"
+                android:layout_weight="1"
+                android:background="@drawable/rounded_button_filter_empty"
+                android:fontFamily="@font/myfont"
+                android:padding="0dp"
+                android:text="Active"
+                android:textAllCaps="false"
+                android:textColor="@color/black"
+                android:textSize="12sp"/>
+
+            <Button
+                android:id="@+id/btn_rescued"
+                android:layout_width="wrap_content"
+                android:layout_height="48dp"
+                android:layout_marginStart="4dp"
+                android:layout_marginEnd="4dp"
+                android:layout_weight="1"
+                android:background="@drawable/rounded_button_filter_empty"
+                android:fontFamily="@font/myfont"
+                android:padding="0dp"
+                android:text="Sauvée"
+                android:textAllCaps="false"
+                android:textColor="@color/black"
+                android:textSize="12sp"/>
+
+            <Button
+                android:id="@+id/btn_offline"
+                android:layout_width="wrap_content"
+                android:layout_height="48dp"
+                android:layout_marginStart="4dp"
+                android:layout_marginEnd="4dp"
+                android:layout_weight="1"
+                android:background="@drawable/rounded_button_filter_empty"
+                android:fontFamily="@font/myfont"
+                android:padding="0dp"
+                android:text="Hors ligne"
+                android:textAllCaps="false"
+                android:textColor="@color/black"
+                android:textSize="12sp"/>
+
+            <Button
+                android:id="@+id/btn_false"
+                android:layout_width="wrap_content"
+                android:layout_height="48dp"
+                android:layout_marginStart="4dp"
+                android:layout_marginEnd="4dp"
+                android:layout_weight="1"
+                android:background="@drawable/rounded_button_filter_empty"
+                android:fontFamily="@font/myfont"
+                android:padding="0dp"
+                android:text="Faux"
+                android:textAllCaps="false"
+                android:textColor="@color/black"
+                android:textSize="12sp"/>
+
+        </LinearLayout>
+
+        <!-- RecyclerView for falls -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/falls_list"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_marginStart="12dp"
+            android:layout_marginTop="12dp"
+            android:layout_marginEnd="12dp"
+            android:layout_marginBottom="12dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/buttons_layout"/>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</FrameLayout>

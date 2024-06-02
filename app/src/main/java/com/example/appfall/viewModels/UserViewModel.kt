@@ -8,9 +8,14 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.example.appfall.data.daoModels.UserDaoModel
 import com.example.appfall.data.models.LoginResponse
+import com.example.appfall.data.models.UpdateResponse
 import com.example.appfall.data.models.User
 import com.example.appfall.data.models.UserCredential
+import com.example.appfall.data.models.UserName
+import com.example.appfall.data.models.UserPassword
 import com.example.appfall.data.repositories.AppDatabase
+import com.example.appfall.data.repositories.dataStorage.ContactDao
+import com.example.appfall.data.repositories.dataStorage.FallDao
 import com.example.appfall.data.repositories.dataStorage.UserDao
 import com.example.appfall.retrofit.RetrofitInstance
 import kotlinx.coroutines.Dispatchers
@@ -23,6 +28,8 @@ import retrofit2.Response
 
 class UserViewModel(application: Application) : AndroidViewModel(application) {
     private val userDao: UserDao = AppDatabase.getInstance(application).userDao()
+    private val contactsDao: ContactDao = AppDatabase.getInstance(application).contactDao()
+    private val fallsDao: FallDao = AppDatabase.getInstance(application).fallDao()
 
     private val _loginResponse: MutableLiveData<LoginResponse> = MutableLiveData()
     val loginResponse: LiveData<LoginResponse> = _loginResponse
@@ -36,9 +43,24 @@ class UserViewModel(application: Application) : AndroidViewModel(application) {
     private val _localUser: MutableLiveData<UserDaoModel?> = MutableLiveData()
     val localUser: MutableLiveData<UserDaoModel?> = _localUser
 
+    private val _updateNameResponse: MutableLiveData<UpdateResponse> = MutableLiveData()
+    val updateNameResponse: LiveData<UpdateResponse> = _updateNameResponse
+
+    private val _updatePasswordResponse: MutableLiveData<UpdateResponse> = MutableLiveData()
+    val updatePasswordResponse: LiveData<UpdateResponse> = _updatePasswordResponse
+
+    private lateinit var token: String
+
+    init {
+        viewModelScope.launch(Dispatchers.IO) {
+            val user = userDao.getUser()
+            user?.let {
+                token = it.token
+            }
+        }
+    }
 
     fun addUser(user: User) {
-
         RetrofitInstance.fallApi.addUser(user).enqueue(object : Callback<LoginResponse> {
             override fun onResponse(call: Call<LoginResponse>, response: Response<LoginResponse>) {
                 if (response.isSuccessful) {
@@ -102,6 +124,54 @@ class UserViewModel(application: Application) : AndroidViewModel(application) {
                 Log.e("UserViewModel", "Failed to login", t)
             }
         })
+    }
+
+    fun updateName(newName: String) {
+        val userName = UserName(newName)
+        RetrofitInstance.fallApi.updateUserName("Bearer $token", userName).enqueue(object : Callback<UpdateResponse> {
+            override fun onResponse(call: Call<UpdateResponse>, response: Response<UpdateResponse>) {
+                if (response.isSuccessful) {
+                    _updateNameResponse.value = response.body()
+                } else {
+                    handleErrorResponse(response.errorBody())
+                    Log.e("UserViewModel", "Failed to update name: ${response.message()}")
+                }
+            }
+
+            override fun onFailure(call: Call<UpdateResponse>, t: Throwable) {
+                val errorMessage = t.message ?: "An error occurred while updating name"
+                _addErrorStatus.postValue(errorMessage)
+                Log.e("UserViewModel", errorMessage, t)
+            }
+        })
+    }
+
+    fun updatePassword(newPassword: String) {
+        val userPassword = UserPassword(newPassword)
+        RetrofitInstance.fallApi.updateUserPassword("Bearer $token", userPassword).enqueue(object : Callback<UpdateResponse> {
+            override fun onResponse(call: Call<UpdateResponse>, response: Response<UpdateResponse>) {
+                if (response.isSuccessful) {
+                    _updatePasswordResponse.value = response.body()
+                } else {
+                    handleErrorResponse(response.errorBody())
+                    Log.e("UserViewModel", "Failed to update password: ${response.message()}")
+                }
+            }
+
+            override fun onFailure(call: Call<UpdateResponse>, t: Throwable) {
+                val errorMessage = t.message ?: "An error occurred while updating password"
+                _addErrorStatus.postValue(errorMessage)
+                Log.e("UserViewModel", errorMessage, t)
+            }
+        })
+    }
+
+    fun logout() {
+        viewModelScope.launch(Dispatchers.IO) {
+            userDao.deleteUser()
+            contactsDao.deleteContacts()
+            fallsDao.deleteFalls()
+        }
     }
 
     fun getLocalUser() {

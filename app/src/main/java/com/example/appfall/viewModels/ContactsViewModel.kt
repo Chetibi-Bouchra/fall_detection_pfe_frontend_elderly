@@ -5,14 +5,15 @@ import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.appfall.data.daoModels.UserDaoModel
+import com.example.appfall.data.daoModels.ContactDaoModel
 import com.example.appfall.data.models.ConnectedSupervisor
 import com.example.appfall.data.models.ConnectedSupervisorsResponse
 import com.example.appfall.data.repositories.AppDatabase
+import com.example.appfall.data.repositories.dataStorage.ContactDao
 import com.example.appfall.data.repositories.dataStorage.UserDao
 import com.example.appfall.retrofit.RetrofitInstance
+import com.example.appfall.services.NetworkHelper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import retrofit2.Call
@@ -21,24 +22,88 @@ import retrofit2.Response
 
 class ContactsViewModel(application: Application) : AndroidViewModel(application) {
     private val userDao: UserDao = AppDatabase.getInstance(application).userDao()
-    private val mutableContactsList: MutableLiveData<List<ConnectedSupervisor>>  = MutableLiveData<List<ConnectedSupervisor>>()
-    //private lateinit var token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY2MjA0M2NhNTBhMmRiMGNkZDZlY2JhNSIsImlhdCI6MTcxMzM5MjgxNn0.UhL9U8R78Y4iZgoU8vPUPZva_n-4w45x9Z4Rar3PWYM"
-    private lateinit var token: String
+    private val contactsDao: ContactDao = AppDatabase.getInstance(application).contactDao()
+    private var token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY2MjA0M2NhNTBhMmRiMGNkZDZlY2JhNSIsImlhdCI6MTcxMzM5MjgxNn0.UhL9U8R78Y4iZgoU8vPUPZva_n-4w45x9Z4Rar3PWYM"
+    private val mutableContactsList: MutableLiveData<List<ConnectedSupervisor>> = MutableLiveData()
+    //private lateinit var token: String
+    private val networkHelper = NetworkHelper(application)
+
     init {
         viewModelScope.launch(Dispatchers.IO) {
             val user = userDao.getUser()
             user?.let {
-                token = it.token
-                getContacts()
+                //token = it.token
+                println("aaaaa ${contactsDao.getAllContacts()}")
+                if (networkHelper.isInternetAvailable()) {
+                    getContactsNetwork()
+                } else {
+                    getContactsOffline()
+                }
             }
         }
     }
 
+    fun getContacts() {
+        if (networkHelper.isInternetAvailable()) {
+            getContactsNetwork()
+        } else {
+            getContactsOffline()
+        }
+    }
 
-    private fun getContacts() {
+    private fun getContactsOffline() {
+        viewModelScope.launch(Dispatchers.IO) {
+            val contacts = contactsDao.getAllContacts()
+            val connectedSupervisors = contacts.map { contact ->
+                ConnectedSupervisor(
+                    _id = contact._id,
+                    name = contact.name,
+                    phone = contact.phone
+                )
+            }
+            mutableContactsList.postValue(connectedSupervisors)
+        }
+    }
+
+    private fun getContactsNetwork() {
         RetrofitInstance.fallApi.getContacts("Bearer $token").enqueue(object : Callback<ConnectedSupervisorsResponse> {
             override fun onResponse(call: Call<ConnectedSupervisorsResponse>, response: Response<ConnectedSupervisorsResponse>) {
-                mutableContactsList.value = response.body()!!.connectedSupervisors
+                val networkContacts = response.body()?.connectedSupervisors ?: emptyList()
+                viewModelScope.launch(Dispatchers.IO) {
+                    val localContacts = contactsDao.getAllContacts()
+
+                    // Identify new contacts to be added
+                    val newContacts = networkContacts.filterNot { networkContact ->
+                        localContacts.any { localContact ->
+                            localContact._id == networkContact._id
+                        }
+                    }
+
+                    // Identify contacts to be deleted
+                    val deletedContacts = localContacts.filterNot { localContact ->
+                        networkContacts.any { networkContact ->
+                            localContact._id == networkContact._id
+                        }
+                    }
+
+                    // Convert newContacts to ContactDaoModel objects
+                    val newContactsDaoModels = newContacts.map { newContact ->
+                        ContactDaoModel(newContact._id, newContact.name, newContact.phone)
+                    }
+
+                    // Add new contacts
+                    newContactsDaoModels.forEach { newContactDaoModel ->
+                        contactsDao.addContact(newContactDaoModel)
+                    }
+
+                    // Delete contacts not present in the network response
+                    deletedContacts.forEach { deletedContact ->
+                        contactsDao.deleteContact(deletedContact)
+                    }
+
+                    // Update the mutable contacts list
+                    mutableContactsList.postValue(networkContacts)
+                }
             }
 
             override fun onFailure(call: Call<ConnectedSupervisorsResponse>, t: Throwable) {
@@ -46,6 +111,8 @@ class ContactsViewModel(application: Application) : AndroidViewModel(application
             }
         })
     }
+
+
 
 
     fun observeContactsList(): LiveData<List<ConnectedSupervisor>> {
