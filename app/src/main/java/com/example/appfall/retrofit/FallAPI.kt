@@ -1,6 +1,7 @@
 package com.example.appfall.retrofit
 
 import com.example.appfall.data.models.ConnectedSupervisorsResponse
+import com.example.appfall.data.models.FallFilter
 import com.example.appfall.data.models.FallStatus
 import com.example.appfall.data.models.FallsResponse
 import com.example.appfall.data.models.LoginResponse
@@ -32,8 +33,8 @@ interface FallAPI {
         @Body request: UserCredential,
     ): Call<LoginResponse>
 
-    @GET("falls/getFalls")
-    fun getFalls(@Header("Authorization") token: String): Call<FallsResponse>
+    @POST("falls/getFalls")
+    fun getFalls(@Header("Authorization") token: String, @Body request: FallFilter): Call<FallsResponse>
 
     @PUT("users/updateUser")
     fun updateUserPassword(

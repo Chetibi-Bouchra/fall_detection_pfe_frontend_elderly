@@ -68,7 +68,7 @@ class UserViewModel(application: Application) : AndroidViewModel(application) {
                     viewModelScope.launch(Dispatchers.IO) {
                         val userDaoModel = UserDaoModel(
                             phone = user.phone,
-                            token = _loginResponse.value?.accessToken ?: ""
+                            token = _loginResponse.value?.data?.accessToken ?: ""
                         )
                         try {
                             userDao.addUser(userDaoModel)
@@ -101,7 +101,7 @@ class UserViewModel(application: Application) : AndroidViewModel(application) {
                     viewModelScope.launch(Dispatchers.IO) {
                         val userDaoModel = UserDaoModel(
                             phone = user.credential,
-                            token = _loginResponse.value?.accessToken ?: ""
+                            token = _loginResponse.value?.data?.accessToken ?: ""
                         )
                         try {
                             userDao.addUser(userDaoModel)

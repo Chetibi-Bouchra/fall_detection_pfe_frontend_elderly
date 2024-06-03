@@ -1,6 +1,6 @@
 package com.example.appfall.data.models
 
 data class LoginResponse(
-    val accessToken: String,
+    val data: UserLogin,
     val status: String
 )

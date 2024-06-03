@@ -12,6 +12,7 @@ import com.example.appfall.data.models.FallsResponse
 import com.example.appfall.data.repositories.AppDatabase
 import com.example.appfall.data.repositories.dataStorage.UserDao
 import com.example.appfall.data.daoModels.FallDaoModel
+import com.example.appfall.data.models.FallFilter
 import com.example.appfall.data.models.FallStatus
 import com.example.appfall.data.models.Place
 import com.example.appfall.data.models.UpdateResponse
@@ -47,7 +48,7 @@ class FallsViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     private fun getFalls() {
-        RetrofitInstance.fallApi.getFalls("Bearer $token").enqueue(object : Callback<FallsResponse> {
+        RetrofitInstance.fallApi.getFalls("Bearer $token", FallFilter("all")).enqueue(object : Callback<FallsResponse> {
             override fun onResponse(call: Call<FallsResponse>, response: Response<FallsResponse>) {
                 if (response.isSuccessful) {
                     val falls = response.body()?.data ?: emptyList()

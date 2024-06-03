@@ -44,8 +44,8 @@ class AuthenticationActivity : AppCompatActivity() {
             }
             if (user != null) {
                 requestPermissions()
-                startActivity(Intent(this@AuthenticationActivity, MainActivity::class.java))
-                //startActivity(Intent(this@AuthenticationActivity, AlertActivity::class.java))
+                //startActivity(Intent(this@AuthenticationActivity, MainActivity::class.java))
+                startActivity(Intent(this@AuthenticationActivity, AlertActivity::class.java))
                 finish()
             }
         }

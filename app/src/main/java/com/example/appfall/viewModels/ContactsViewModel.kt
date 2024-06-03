@@ -23,7 +23,7 @@ import retrofit2.Response
 class ContactsViewModel(application: Application) : AndroidViewModel(application) {
     private val userDao: UserDao = AppDatabase.getInstance(application).userDao()
     private val contactsDao: ContactDao = AppDatabase.getInstance(application).contactDao()
-    private var token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY2MjA0M2NhNTBhMmRiMGNkZDZlY2JhNSIsImlhdCI6MTcxMzM5MjgxNn0.UhL9U8R78Y4iZgoU8vPUPZva_n-4w45x9Z4Rar3PWYM"
+    private var token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY2M2Q2NjNmYzExN2RlYTdiYmYyOThlOCIsImlhdCI6MTcxNzM4MDE1OH0._Kiim5YC1OUiBrOL7fhkpsr1_dbXBQy1EJzo1xN3ZsU"
     private val mutableContactsList: MutableLiveData<List<ConnectedSupervisor>> = MutableLiveData()
     //private lateinit var token: String
     private val networkHelper = NetworkHelper(application)
