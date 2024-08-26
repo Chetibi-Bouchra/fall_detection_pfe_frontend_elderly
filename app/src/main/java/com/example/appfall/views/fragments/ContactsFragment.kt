@@ -11,17 +11,20 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.appfall.adapters.ContactsAdapter
 import com.example.appfall.databinding.FragmentContactsBinding
 import com.example.appfall.services.NetworkHelper
+import com.example.appfall.websockets.WebSocketManager
 
 class ContactsFragment : Fragment() {
 
     private lateinit var binding: FragmentContactsBinding
     private lateinit var contactsViewModel: ContactsViewModel
     private lateinit var contactsAdapter: ContactsAdapter
+    private lateinit var networkHelper: NetworkHelper
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         contactsViewModel = ViewModelProvider(this)[ContactsViewModel::class.java]
         contactsAdapter = ContactsAdapter()
+        networkHelper = NetworkHelper(requireContext())
     }
 
     override fun onCreateView(
@@ -35,13 +38,24 @@ class ContactsFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        binding.contactsList.apply {
-            layoutManager = LinearLayoutManager(requireContext())
-            adapter = contactsAdapter
+        if (networkHelper.isInternetAvailable()) {
+
+            binding.noNetworkLayout.visibility = View.GONE
+            binding.contactsList.apply {
+                layoutManager = LinearLayoutManager(requireContext())
+                adapter = contactsAdapter
+            }
+
+            observeContacts()
+            loadContacts()
+
+        } else {
+            binding.noNetworkLayout.visibility = View.VISIBLE
+            binding.progressBar.visibility = View.GONE
+            binding.contactsList.visibility = View.VISIBLE
+            binding.noContactsText.visibility = View.VISIBLE
         }
 
-        observeContacts()
-        loadContacts()
     }
 
     private fun loadContacts() {

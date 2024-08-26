@@ -46,7 +46,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:fontFamily="@font/myfont"
-                    android:text="Vous avez déjè un compte ?"
+                    android:text="Vous avez déjà un compte ?"
                     android:textColor="@android:color/black"
                     android:textSize="12sp"/>
 
@@ -75,10 +75,11 @@
                 android:fontFamily="@font/myfont"
                 android:hint="Nom"
                 android:inputType="text"
-                android:paddingStart="8dp"
+                android:paddingStart="16dp"
                 android:paddingTop="4dp"
                 android:paddingEnd="8dp"
-                android:paddingBottom="4dp" />
+                android:paddingBottom="4dp"
+                android:textSize="16sp" />
 
 
             <!-- Previous text fields -->
@@ -91,10 +92,11 @@
                 android:fontFamily="@font/myfont"
                 android:hint="Numéro de téléphone"
                 android:inputType="phone"
-                android:paddingStart="8dp"
+                android:paddingStart="16dp"
                 android:paddingTop="4dp"
                 android:paddingEnd="8dp"
-                android:paddingBottom="4dp" />
+                android:paddingBottom="4dp"
+                android:textSize="16sp" />
 
             <TextView
                 android:id="@+id/phone_warning"
@@ -114,10 +116,11 @@
                 android:fontFamily="@font/myfont"
                 android:hint="Mot de passe"
                 android:inputType="textPassword"
-                android:paddingStart="8dp"
+                android:paddingStart="16dp"
                 android:paddingTop="4dp"
                 android:paddingEnd="8dp"
-                android:paddingBottom="4dp" />
+                android:paddingBottom="4dp"
+                android:textSize="16sp" />
 
             <TextView
                 android:id="@+id/password_warning"
@@ -137,10 +140,11 @@
                 android:fontFamily="@font/myfont"
                 android:hint="Confirmer le mot de passe"
                 android:inputType="textPassword"
-                android:paddingStart="8dp"
+                android:paddingStart="16dp"
                 android:paddingTop="4dp"
                 android:paddingEnd="8dp"
-                android:paddingBottom="4dp" />
+                android:paddingBottom="4dp"
+                android:textSize="16sp" />
 
             <TextView
                 android:id="@+id/confirm_password_warning"

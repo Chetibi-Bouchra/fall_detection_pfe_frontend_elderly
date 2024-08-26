@@ -1,8 +1,8 @@
 package com.example.appfall.data.models
 
-data class Fall(
+data class AddedFall(
     val _id: String,
+    val dateTime: String,
     val place: Place,
-    val status: String,
-    val dateTime: String
+    val status: String
 )

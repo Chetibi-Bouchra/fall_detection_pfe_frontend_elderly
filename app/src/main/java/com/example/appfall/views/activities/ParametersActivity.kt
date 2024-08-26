@@ -5,6 +5,7 @@ import android.widget.ImageButton
 import android.widget.TextView
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
+import androidx.navigation.NavController
 import androidx.navigation.Navigation
 import com.example.appfall.R
 import com.example.appfall.databinding.ActivityParametersBinding
@@ -39,11 +40,29 @@ class ParametersActivity : AppCompatActivity() {
         // Handle back button press
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
+                handleBackButtonPress(navController)
+            }
+        })
+    }
+
+    private fun handleBackButtonPress(navController: NavController) {
+        val currentDestination = navController.currentDestination?.id
+        when (currentDestination) {
+            R.id.parametersMainFragment -> {
+                // If currently on the parametersMainFragment, go back to MainActivity
+                finish()
+            }
+            R.id.nameFragment, R.id.passwordFragment, R.id.fallsFragment -> {
+                // If currently on any other fragment, navigate back to parametersMainFragment
+                navController.navigate(R.id.action_global_parametersMainFragment)
+            }
+            else -> {
+                // For any other case, follow the default back navigation
                 if (!navController.popBackStack()) {
                     finish()
                 }
             }
-        })
+        }
     }
 
     private fun updateHeaderTitle(title: String) {

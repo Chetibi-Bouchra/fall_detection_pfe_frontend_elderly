@@ -77,9 +77,35 @@
         android:id="@+id/buttonIgnore"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginStart="12dp"
+        android:layout_marginEnd="12dp"
         android:text="Ignorer"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/progressFrame" />
+
+    <Button
+        android:id="@+id/buttonSave"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="12dp"
+        android:layout_marginEnd="12dp"
+        android:text="Sauvée"
+        android:visibility="gone"
+        app:layout_constraintEnd_toStartOf="@+id/buttonFalseAlert"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/progressFrame" />
+
+    <Button
+        android:id="@+id/buttonFalseAlert"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="12dp"
+        android:layout_marginEnd="12dp"
+        android:text="Fausse alerte"
+        android:visibility="gone"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/buttonSave"
         app:layout_constraintTop_toBottomOf="@id/progressFrame" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

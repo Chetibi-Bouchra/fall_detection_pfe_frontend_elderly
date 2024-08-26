@@ -1,11 +1,14 @@
 package com.example.appfall.views.fragments
 
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -14,6 +17,7 @@ import androidx.navigation.fragment.findNavController
 import com.example.appfall.R
 import com.example.appfall.databinding.FragmentNameBinding
 import com.example.appfall.viewModels.UserViewModel
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 
 class NameFragment : Fragment() {
     private var _binding: FragmentNameBinding? = null
@@ -80,9 +84,30 @@ class NameFragment : Fragment() {
     private fun observeUpdateError() {
         userViewModel.addErrorStatus.observe(viewLifecycleOwner, Observer { errorMessage ->
             if (!errorMessage.isNullOrEmpty()) {
-                Toast.makeText(requireContext(), "Une erreur est survenue lors de la mise à jour", Toast.LENGTH_SHORT).show()
+                showPopup("Echec", "Une erreur est survenue lors de la mise à jour du nom")
             }
         })
+    }
+
+    private fun showPopup(title: String, message: String) {
+        val dialogView = LayoutInflater.from(context).inflate(R.layout.popup_message, null)
+        val titleTextView: TextView = dialogView.findViewById(R.id.tvTitle)
+        val messageTextView: TextView = dialogView.findViewById(R.id.tvMessage)
+
+        titleTextView.text = title
+        messageTextView.text = message
+
+        val alertDialog = MaterialAlertDialogBuilder(requireContext())
+            .setView(dialogView)
+            .setCancelable(false)
+            .create()
+
+        alertDialog.show()
+
+        Handler(Looper.getMainLooper()).postDelayed({
+            alertDialog.dismiss()
+            findNavController().navigate(R.id.action_nameFragment_to_parametersMainFragment)
+        }, 3000)
     }
 
     override fun onDestroyView() {

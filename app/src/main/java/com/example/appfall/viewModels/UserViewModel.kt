@@ -68,7 +68,8 @@ class UserViewModel(application: Application) : AndroidViewModel(application) {
                     viewModelScope.launch(Dispatchers.IO) {
                         val userDaoModel = UserDaoModel(
                             phone = user.phone,
-                            token = _loginResponse.value?.data?.accessToken ?: ""
+                            token = _loginResponse.value?.data?.accessToken ?: "",
+                            inDanger = false
                         )
                         try {
                             userDao.addUser(userDaoModel)
@@ -101,7 +102,8 @@ class UserViewModel(application: Application) : AndroidViewModel(application) {
                     viewModelScope.launch(Dispatchers.IO) {
                         val userDaoModel = UserDaoModel(
                             phone = user.credential,
-                            token = _loginResponse.value?.data?.accessToken ?: ""
+                            token = _loginResponse.value?.data?.accessToken ?: "",
+                            inDanger = false
                         )
                         try {
                             userDao.addUser(userDaoModel)
@@ -180,6 +182,14 @@ class UserViewModel(application: Application) : AndroidViewModel(application) {
             _localUser.postValue(localUser)
         }
     }
+
+    fun updateInDangerStatus(inDanger: Boolean) {
+        viewModelScope.launch(Dispatchers.IO) {
+            userDao.updateInDangerStatus(inDanger)
+        }
+    }
+
+
 
     private fun handleErrorResponse(errorBody: ResponseBody?) {
         val errorMessage = errorBody?.string()?.let { errorContent ->

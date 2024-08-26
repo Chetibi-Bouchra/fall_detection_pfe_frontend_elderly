@@ -47,4 +47,7 @@
             android:id="@+id/action_passwordFragment_to_parametersMainFragment"
             app:destination="@id/parametersMainFragment" />
     </fragment>
+    <action
+        android:id="@+id/action_global_parametersMainFragment"
+        app:destination="@id/parametersMainFragment" />
 </navigation>

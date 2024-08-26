@@ -23,8 +23,12 @@ import android.os.Handler
 import android.telephony.SmsManager
 import android.widget.Toast
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
-import com.example.appfall.data.repositories.dataStorage.UserDao
+import androidx.navigation.fragment.findNavController
+import com.example.appfall.adapters.ContactsAdapter
+import com.example.appfall.services.NetworkHelper
+import com.example.appfall.viewModels.ContactsViewModel
 import com.example.appfall.viewModels.UserViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -34,53 +38,59 @@ import kotlin.random.Random
 class CodeFragment : Fragment() {
     private var _binding: FragmentCodeBinding? = null
     private val binding get() = _binding!!
-    private var nbMessages:Int = 0
-    private lateinit var token:String
-    private lateinit var phone:String
+    private var nbMessages: Int = 0
+    private lateinit var token: String
+    private lateinit var phone: String
     private val viewModel: UserViewModel by viewModels()
+    private lateinit var networkHelper: NetworkHelper
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        networkHelper = NetworkHelper(requireContext())
+    }
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentCodeBinding.inflate(inflater, container, false)
-
-        viewModel.getLocalUser()
-        observeLocalUser()
-
-        binding.progressBar.visibility = View.VISIBLE
-
-
         return binding.root
     }
 
-
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        observeLocalUser()
-        WebSocketManager.receivedMessage.observe(viewLifecycleOwner) { message ->
-            println("WebSocket View: $message")
-            if (nbMessages == 0) {
-                showConfirmationDialog(message)
-                nbMessages += 1
-            }
-            else {
-                showEndDialog(message)
-                nbMessages -= 1
-            }
 
+        if (networkHelper.isInternetAvailable()) {
+            // Show progress bar and hide QR code initially
+            binding.progressBar.visibility = View.VISIBLE
+            binding.qrCodeImageView.visibility = View.GONE
+
+            viewModel.getLocalUser()
+            observeLocalUser()
+
+            WebSocketManager.receivedMessage.observe(viewLifecycleOwner) { message ->
+                println("WebSocket View: $message")
+                if (nbMessages == 0) {
+                    showConfirmationDialog(message)
+                    nbMessages += 1
+                } else {
+                    showEndDialog(message)
+                    nbMessages -= 1
+                }
+            }
+        } else {
+            binding.noNetworkLayout.visibility = View.VISIBLE
+            binding.progressBar.visibility = View.GONE
+            binding.contentLayout.visibility = View.GONE
         }
+
 
     }
 
     private fun observeLocalUser() {
         viewModel.localUser.observe(viewLifecycleOwner) { user ->
-
-                if (user != null) {
-                    phone = user.phone
-                    token = user.token
-                }
-
+            if (user != null) {
+                phone = user.phone
+                token = user.token
 
                 val codeLength = 6
                 val randomCode = generateRandomCode(codeLength)
@@ -90,18 +100,27 @@ class CodeFragment : Fragment() {
                 val secretCode = "$phone:$randomCode"
                 val width = 1000
                 val height = 1000
-                val qrCodeBitmap = generateQRCode(secretCode, width, height)
 
-                binding.qrCodeImageView.setImageBitmap(qrCodeBitmap)
-                WebSocketManager.connectWebSocket()
-                WebSocketManager.sendMessage("register:$token:$secretCode")
-                binding.progressBar.visibility = View.GONE
+                // Generate QR code asynchronously
+                lifecycleScope.launch {
+                    val qrCodeBitmap = withContext(Dispatchers.IO) {
+                        generateQRCode(secretCode, width, height)
+                    }
 
+                    // Update UI on the main thread
+                    binding.qrCodeImageView.setImageBitmap(qrCodeBitmap)
+                    binding.progressBar.visibility = View.GONE
+                    binding.qrCodeImageView.visibility = View.VISIBLE
 
+                    // Connect WebSocket and send message
+                    WebSocketManager.connectWebSocket()
+                    WebSocketManager.sendMessage("register:$token:$secretCode")
+                }
+            }
         }
     }
 
-    fun generateRandomCode(length: Int): String {
+    private fun generateRandomCode(length: Int): String {
         val charPool: List<Char> = ('0'..'9').toList()
         return (1..length)
             .map { Random.nextInt(0, charPool.size) }
@@ -120,9 +139,7 @@ class CodeFragment : Fragment() {
 
         dialog.window?.setBackgroundDrawableResource(R.drawable.card)
 
-
         dialog.show()
-
 
         dialogView.findViewById<Button>(R.id.btnConfirm).setOnClickListener {
             WebSocketManager.sendMessage("yes")

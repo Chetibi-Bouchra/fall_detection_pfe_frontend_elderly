@@ -1,8 +1,11 @@
 package com.example.appfall.retrofit
 
+import com.example.appfall.data.models.AddFallResponse
 import com.example.appfall.data.models.ConnectedSupervisorsResponse
+import com.example.appfall.data.models.Fall
 import com.example.appfall.data.models.FallFilter
 import com.example.appfall.data.models.FallStatus
+import com.example.appfall.data.models.FallWithoutID
 import com.example.appfall.data.models.FallsResponse
 import com.example.appfall.data.models.LoginResponse
 import com.example.appfall.data.models.UpdateResponse
@@ -60,4 +63,10 @@ interface FallAPI {
         @Path("fallId") fallId: String,
         @Body request: FallStatus
     ): Call<UpdateResponse>
+
+    @POST("falls/addFall")
+    fun addFall(
+        @Header("Authorization") token: String,
+        @Body request: FallWithoutID,
+    ): Call<AddFallResponse>
 }

@@ -10,4 +10,6 @@
     <color name="colorRescued">#00B140</color> <!-- Green -->
     <color name="colorActive">#e34234</color> <!-- Red -->
     <color name="colorFalse">#BBBBBB</color> <!-- Grey -->
+    <color name="colorCaution">#eed202</color> <!-- Grey -->
+    eed202
 </resources>

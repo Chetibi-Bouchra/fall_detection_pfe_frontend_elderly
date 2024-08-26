@@ -45,10 +45,11 @@
                 android:fontFamily="@font/myfont"
                 android:hint="Numéro de téléphone"
                 android:inputType="phone"
-                android:paddingStart="8dp"
+                android:paddingStart="16dp"
                 android:paddingTop="4dp"
                 android:paddingEnd="8dp"
-                android:paddingBottom="4dp" />
+                android:paddingBottom="4dp"
+                android:textSize="16sp" />
 
             <TextView
                 android:id="@+id/phone_warning"
@@ -72,10 +73,11 @@
                     android:fontFamily="@font/myfont"
                     android:hint="Mot de passe"
                     android:inputType="textPassword"
-                    android:paddingStart="8dp"
+                    android:paddingStart="16dp"
                     android:paddingTop="4dp"
                     android:paddingEnd="40dp"
-                    android:paddingBottom="4dp"/>
+                    android:paddingBottom="4dp"
+                    android:textSize="16sp"/>
 
                 <ImageView
                     android:id="@+id/password_toggle"

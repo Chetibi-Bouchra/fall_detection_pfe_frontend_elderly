@@ -6,27 +6,50 @@
     android:layout_height="match_parent"
     tools:context=".views.fragments.CodeFragment">
 
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/contentLayout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <TextView
+            android:id="@+id/connectTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:fontFamily="@font/myfont"
+            android:text="Scannez le code QR pour se connecter"
+            android:textColor="@android:color/black"
+            android:textSize="18sp"
+            app:layout_constraintBottom_toTopOf="@+id/qrCodeImageViewLayout"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.5"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.0"/>
+
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/qrCodeImageViewLayout"
+        android:layout_width="300dp"
+        android:layout_height="300dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/connectTextView">
+
     <ImageView
         android:id="@+id/qrCodeImageView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:scaleType="centerInside" />
 
-    <TextView
-        android:id="@+id/connectTextView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
-        android:layout_marginTop="16dp"
-        android:fontFamily="@font/myfont"
-        android:text="Scannez le code QR pour se connecter"
-        android:textColor="@android:color/black"
-        android:textSize="18sp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"/>
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
+    </androidx.constraintlayout.widget.ConstraintLayout>
     <!-- Add ProgressBar -->
     <ProgressBar
         android:id="@+id/progressBar"
@@ -35,5 +58,41 @@
         android:layout_gravity="center"
         android:indeterminateTint="@color/hot_jazz"
         android:visibility="gone" />
+
+    <FrameLayout
+        android:id="@+id/noNetworkLayout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone">
+
+        <!-- Vertical LinearLayout to stack ImageView and TextView -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <ImageView
+                android:id="@+id/ic_no_wifi"
+                android:layout_width="160dp"
+                android:layout_height="160dp"
+                android:contentDescription="Aucune connexion internet"
+                android:src="@drawable/ic_no_wifi"/>
+
+            <TextView
+                android:id="@+id/no_wifi_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:layout_marginBottom="16dp"
+                android:fontFamily="@font/myfont"
+                android:text="Aucune connexion internet"
+                android:textAlignment="center"
+                android:textColor="#D3D3D3"
+                android:textSize="18sp"/>
+        </LinearLayout>
+
+    </FrameLayout>
 
 </FrameLayout>

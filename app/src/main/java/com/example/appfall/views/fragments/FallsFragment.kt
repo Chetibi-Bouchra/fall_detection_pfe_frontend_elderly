@@ -84,9 +84,15 @@ class FallsFragment : Fragment() {
 
     private fun observeFalls() {
         fallsViewModel.observeFallsList().observe(viewLifecycleOwner) { falls ->
-            falls?.let {
-                fallsAdapter.setFalls(ArrayList(it))
+
+            if (falls.isEmpty()) {
+                View.VISIBLE
+            } else {
+                falls?.let {
+                    fallsAdapter.setFalls(ArrayList(it))
+                }
             }
+
         }
     }
 

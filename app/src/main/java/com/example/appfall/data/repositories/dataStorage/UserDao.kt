@@ -31,4 +31,7 @@ interface UserDao {
     /*@Query("UPDATE users SET name = :newName LIMIT 1")
     fun updateName(newName: String)*/
 
+    @Query("UPDATE users SET inDanger = :inDanger")
+    fun updateInDangerStatus(inDanger: Boolean)
+
 }

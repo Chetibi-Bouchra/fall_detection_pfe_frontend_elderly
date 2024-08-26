@@ -21,6 +21,7 @@
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.HIGH_SAMPLING_RATE_SENSORS" />
 
 
     <application
@@ -56,6 +57,12 @@
         <activity
             android:name=".views.activities.MainActivity"
             android:exported="true" />
+
+        <service
+            android:name=".services.InferenceService"
+            android:enabled="true"
+            android:exported="true"/>
+        <service android:name=".services.NotificationHelper" />
     </application>
 
 </manifest>

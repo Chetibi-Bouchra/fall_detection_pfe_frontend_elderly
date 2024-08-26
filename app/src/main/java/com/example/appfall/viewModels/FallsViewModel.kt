@@ -12,14 +12,18 @@ import com.example.appfall.data.models.FallsResponse
 import com.example.appfall.data.repositories.AppDatabase
 import com.example.appfall.data.repositories.dataStorage.UserDao
 import com.example.appfall.data.daoModels.FallDaoModel
+import com.example.appfall.data.models.AddFallResponse
 import com.example.appfall.data.models.FallFilter
 import com.example.appfall.data.models.FallStatus
+import com.example.appfall.data.models.FallWithoutID
 import com.example.appfall.data.models.Place
 import com.example.appfall.data.models.UpdateResponse
 import com.example.appfall.retrofit.RetrofitInstance
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import okhttp3.ResponseBody
+import org.json.JSONObject
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -35,12 +39,18 @@ class FallsViewModel(application: Application) : AndroidViewModel(application) {
     private val offlineFallsList: MutableLiveData<List<FallDaoModel>> = MutableLiveData()
     private val combinedFallsList: MutableLiveData<List<Fall>> = MutableLiveData()
 
-    private var token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY2NTg4MWZlMDcwOGZhMGRjMzQ2NjY4NCIsImlhdCI6MTcxNzE5NDAzNn0.vG-IyMiwCs7Jsj3RSdjVD0pO4gte9M9rBGuvRc1DZxo"
+    private val _addFallResponse: MutableLiveData<AddFallResponse> = MutableLiveData()
+    val addFallResponse: LiveData<AddFallResponse> = _addFallResponse
+
+    private val _addErrorStatus: MutableLiveData<String> = MutableLiveData()
+    val addErrorStatus: LiveData<String> = _addErrorStatus
+    private lateinit var token: String
 
     init {
         viewModelScope.launch(Dispatchers.IO) {
             val user = userDao.getUser()
             user?.let {
+                token = it.token
                 getFalls()
                 getOfflineFalls()
             }
@@ -146,19 +156,50 @@ class FallsViewModel(application: Application) : AndroidViewModel(application) {
             }
         })
     }
+
+    fun addFall(fall: FallWithoutID) {
+        RetrofitInstance.fallApi.addFall("Bearer $token", fall).enqueue(object : Callback<AddFallResponse> {
+            override fun onResponse(call: Call<AddFallResponse>, response: Response<AddFallResponse>) {
+                if (response.isSuccessful) {
+                    _addFallResponse.value = response.body()
+                    getFalls() // Refresh falls list on successful addition
+                } else {
+                    handleErrorResponse(response.errorBody())
+                    Log.e("FallsViewModel", "Failed to add fall to remote server: ${response.message()}")
+                }
+            }
+
+            override fun onFailure(call: Call<AddFallResponse>, t: Throwable) {
+                val errorMessage = t.message ?: "Une erreur s'est produite lors de l'ajout de la chute"
+                _addErrorStatus.postValue(errorMessage)
+                Log.e("FallsViewModel", "Failed to add fall to remote server: $errorMessage", t)
+            }
+        })
+    }
+
+    private fun handleErrorResponse(errorBody: ResponseBody?) {
+        val errorMessage = errorBody?.string()?.let { errorContent ->
+            try {
+                val jsonObject = JSONObject(errorContent)
+                val nestedMessage = jsonObject.getJSONObject("message").getString("message")
+                nestedMessage
+            } catch (e: Exception) {
+                "Une erreur s'est produite en relation avec la chute"
+            }
+        } ?: "Une erreur s'est produite en relation avec la chute"
+        _addErrorStatus.postValue(errorMessage)
+    }
 }
 
 // Extension function to convert FallDaoModel to Fall
 private fun FallDaoModel.toFall(): Fall {
     return Fall(
-        _id = this.id.toString(),
-        createdAt = this.datetime.toString(),
+        _id = this.id,
         place = Place(
             latitude = this.latitude,
             longitude = this.longitude
         ),
         status = this.status,
-        updatedAt = this.datetime.toString()
+        dateTime = this.datetime.toString()
     )
 }
-

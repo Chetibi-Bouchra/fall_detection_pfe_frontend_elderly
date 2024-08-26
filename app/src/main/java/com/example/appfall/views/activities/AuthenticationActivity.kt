@@ -43,13 +43,21 @@ class AuthenticationActivity : AppCompatActivity() {
                 userDao.getUser()
             }
             if (user != null) {
-                requestPermissions()
+                //requestPermissions()
                 //startActivity(Intent(this@AuthenticationActivity, MainActivity::class.java))
-                startActivity(Intent(this@AuthenticationActivity, AlertActivity::class.java))
+
+                if (user.inDanger) {
+                    startActivity(Intent(this@AuthenticationActivity, AlertActivity::class.java))
+                }
+                else {
+                    startActivity(Intent(this@AuthenticationActivity, MainActivity::class.java))
+                }
                 finish()
             }
         }
     }
+
+
 
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     private fun requestPermissions() {

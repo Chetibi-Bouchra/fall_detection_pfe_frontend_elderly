@@ -5,5 +5,5 @@
     <stroke
         android:width="2dp"
         android:color="@color/hot_jazz" /> <!-- Change colorPrimary to your desired button color -->
-    <corners android:radius="20dp" /> <!-- Adjust the radius as needed for the desired corner roundness -->
+    <corners android:radius="10dp" /> <!-- Adjust the radius as needed for the desired corner roundness -->
 </shape>

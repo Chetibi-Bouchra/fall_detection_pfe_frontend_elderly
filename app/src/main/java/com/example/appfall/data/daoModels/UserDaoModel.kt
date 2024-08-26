@@ -7,5 +7,6 @@ import androidx.room.PrimaryKey
 data class UserDaoModel(
     @PrimaryKey
     val phone: String,
-    val token: String
+    val token: String,
+    val inDanger: Boolean
 )
