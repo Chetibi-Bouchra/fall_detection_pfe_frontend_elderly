@@ -11,6 +11,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.appfall.R
 import com.example.appfall.adapters.FallsAdapter
 import com.example.appfall.databinding.FragmentFallsBinding
+import com.example.appfall.services.NetworkHelper
 import com.example.appfall.viewModels.FallsViewModel
 
 class FallsFragment : Fragment() {
@@ -18,11 +19,13 @@ class FallsFragment : Fragment() {
     private val binding get() = _binding!!
     private lateinit var fallsViewModel: FallsViewModel
     private lateinit var fallsAdapter: FallsAdapter
+    private lateinit var networkHelper: NetworkHelper
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         fallsViewModel = ViewModelProvider(this).get(FallsViewModel::class.java)
         fallsAdapter = FallsAdapter(fallsViewModel)
+        networkHelper = NetworkHelper(requireContext())
     }
 
     override fun onCreateView(
@@ -44,15 +47,33 @@ class FallsFragment : Fragment() {
         observeFalls()
 
         binding.btnAll.setOnClickListener {
-            setButtonState(binding.btnAll) { observeFalls() }
+            if(networkHelper.isInternetAvailable()) {
+                setButtonState(binding.btnAll) { observeFalls() }
+            }
+            else {
+                setButtonState(binding.btnAll) { observeOfflineFalls() }
+            }
         }
 
         binding.btnActive.setOnClickListener {
-            setButtonState(binding.btnActive) { observeActiveFalls() }
+            if(networkHelper.isInternetAvailable()) {
+                setButtonState(binding.btnActive) { observeActiveFalls() }
+            }
+            else {
+                binding.fallsList.visibility = View.GONE
+                binding.noNetworkLayout.visibility = View.VISIBLE
+            }
         }
 
         binding.btnRescued.setOnClickListener {
-            setButtonState(binding.btnRescued) { observeRescuedFalls() }
+            if(networkHelper.isInternetAvailable()) {
+                setButtonState(binding.btnRescued) { observeRescuedFalls() }
+            }
+            else {
+                binding.fallsList.visibility = View.GONE
+                binding.noNetworkLayout.visibility = View.VISIBLE
+            }
+
         }
 
         binding.btnOffline.setOnClickListener {
@@ -60,7 +81,14 @@ class FallsFragment : Fragment() {
         }
 
         binding.btnFalse.setOnClickListener {
-            setButtonState(binding.btnFalse) { observeFalseFalls() }
+            if(networkHelper.isInternetAvailable()) {
+                setButtonState(binding.btnFalse) { observeFalseFalls() }
+            }
+            else {
+                binding.fallsList.visibility = View.GONE
+                binding.noNetworkLayout.visibility = View.VISIBLE
+            }
+
         }
 
     }

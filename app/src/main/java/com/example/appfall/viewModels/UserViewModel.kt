@@ -20,6 +20,7 @@ import com.example.appfall.data.repositories.dataStorage.UserDao
 import com.example.appfall.retrofit.RetrofitInstance
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import okhttp3.ResponseBody
 import org.json.JSONObject
 import retrofit2.Call
@@ -33,6 +34,9 @@ class UserViewModel(application: Application) : AndroidViewModel(application) {
 
     private val _loginResponse: MutableLiveData<LoginResponse> = MutableLiveData()
     val loginResponse: LiveData<LoginResponse> = _loginResponse
+
+    private val _inDanger = MutableLiveData<Boolean>()
+    val inDanger: LiveData<Boolean> get() = _inDanger
 
     private val _userAddStatus: MutableLiveData<Boolean> = MutableLiveData()
     val userAddStatus: LiveData<Boolean> = _userAddStatus
@@ -56,8 +60,12 @@ class UserViewModel(application: Application) : AndroidViewModel(application) {
             val user = userDao.getUser()
             user?.let {
                 token = it.token
+                withContext(Dispatchers.Main) {
+                    _inDanger.value = it.inDanger
+                }
             }
         }
+
     }
 
     fun addUser(user: User) {
@@ -186,6 +194,9 @@ class UserViewModel(application: Application) : AndroidViewModel(application) {
     fun updateInDangerStatus(inDanger: Boolean) {
         viewModelScope.launch(Dispatchers.IO) {
             userDao.updateInDangerStatus(inDanger)
+            withContext(Dispatchers.Main) {
+                _inDanger.value = inDanger
+            }
         }
     }
 

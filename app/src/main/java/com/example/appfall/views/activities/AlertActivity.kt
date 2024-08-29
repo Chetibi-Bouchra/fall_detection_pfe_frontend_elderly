@@ -3,30 +3,44 @@ package com.example.appfall.views.activities
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import android.os.CountDownTimer
+import android.util.Log
 import android.view.View
 import androidx.activity.enableEdgeToEdge
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.example.appfall.R
 import com.example.appfall.data.models.Fall
 import com.example.appfall.data.models.FallWithoutID
+import com.example.appfall.data.models.Notification
 import com.example.appfall.data.models.Place
 import com.example.appfall.data.repositories.AppDatabase
 import com.example.appfall.data.repositories.dataStorage.UserDao
 import com.example.appfall.databinding.ActivityAlertBinding
+import com.example.appfall.services.InferenceService
 import com.example.appfall.services.LocationHelper
+import com.example.appfall.services.NetworkHelper
 import com.example.appfall.services.NotificationHelper
 import com.example.appfall.services.SmsHelper
 import com.example.appfall.services.SoundHelper
+import com.example.appfall.viewModels.ContactsViewModel
 import com.example.appfall.viewModels.FallsViewModel
+import com.example.appfall.viewModels.UserViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.time.Instant
+import java.time.OffsetDateTime
+import java.time.ZoneOffset
+import java.time.format.DateTimeFormatter
 
 class AlertActivity : AppCompatActivity() {
 
@@ -35,16 +49,25 @@ class AlertActivity : AppCompatActivity() {
     private lateinit var locationHelper: LocationHelper
     private lateinit var smsHelper: SmsHelper
     private lateinit var soundHelper: SoundHelper
-    private var timeLeftInMillis: Long = 30000 // 30 seconds in milliseconds
+    private var timeLeftInMillis: Long = 5000 // 30 seconds in milliseconds
     private lateinit var userDao: UserDao
     private lateinit var fallsViewModel: FallsViewModel
+    private lateinit var fallId: String
+    private lateinit var userViewModel: UserViewModel
+    private lateinit var contactsViewModel: ContactsViewModel
+    private lateinit var networkHelper: NetworkHelper
 
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        fallsViewModel = ViewModelProvider(this).get(FallsViewModel::class.java)
+        fallsViewModel = ViewModelProvider(this)[FallsViewModel::class.java]
+        contactsViewModel = ViewModelProvider(this)[ContactsViewModel::class.java]
+        networkHelper = NetworkHelper(this)
 
         userDao = AppDatabase.getInstance(this).userDao()
+        userViewModel = ViewModelProvider(this)[UserViewModel::class.java]
+
         binding = ActivityAlertBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
@@ -62,23 +85,27 @@ class AlertActivity : AppCompatActivity() {
         binding.buttonIgnore.setOnClickListener {
             stopIgnoreSound()
             lifecycleScope.launch(Dispatchers.IO) {
-                userDao.updateInDangerStatus(false)
+                userViewModel.updateInDangerStatus(false)
+                Log.d("UserFallInfoAlert", userDao.getUser()?.inDanger.toString())
             }
             addFallToDatabase("false")
-            finish()
+            restartModel()
         }
 
         binding.buttonSave.setOnClickListener {
-            handleFallEvent("Sauvée")
+            handleFallEvent("rescued")
 
         }
 
         binding.buttonFalseAlert.setOnClickListener {
-            handleFallEvent("Fausse alerte")
+            handleFallEvent("false")
         }
 
         startTimer()
+
+        observeAddedFall()
     }
+
 
     private fun startTimer() {
         binding.progressTimer.max = (timeLeftInMillis / 1000).toInt()
@@ -89,14 +116,17 @@ class AlertActivity : AppCompatActivity() {
                 updateTimer()
             }
 
+            @RequiresApi(Build.VERSION_CODES.O)
             override fun onFinish() {
                 binding.progressTimer.progress = 0
                 // Show the other buttons when the timer finishes
                 binding.buttonIgnore.visibility = View.GONE
                 binding.buttonSave.visibility = View.VISIBLE
                 binding.buttonFalseAlert.visibility = View.VISIBLE
-                getContactsAndSendSMS("Fall detected! Immediate assistance needed.")
-                addFallToDatabase("active")
+                sendNotification("Une chute a été détectée")
+                lifecycleScope.launch(Dispatchers.IO) {
+                    addFallToDatabase("active")
+                }
             }
         }.start()
     }
@@ -107,31 +137,62 @@ class AlertActivity : AppCompatActivity() {
         binding.timerText.text = secondsLeft.toString()
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     private fun handleFallEvent(status: String) {
-        getContactsAndSendSMS(status)
-        addFallToDatabase(status)
+        sendNotification(status)
+        updateFallStatus(status)
         lifecycleScope.launch(Dispatchers.IO) {
-            userDao.updateInDangerStatus(false)
+            userViewModel.updateInDangerStatus(false)
+            Log.d("UserFallInfoAlertFalse", userDao.getUser()?.inDanger.toString())
         }
         restartModel()
     }
 
-    private fun getContactsAndSendSMS(message: String) {
-        val contacts = getContacts()
-        for (contact in contacts) {
-            smsHelper.sendSMS(contact.phoneNumber, message)
+    private fun sendNotification(message: String) {
+        if (networkHelper.isInternetAvailable()) {
+            sendPushNotification(message)
+        } else {
+            sendSMS(message)
         }
     }
 
-    private fun getContacts(): List<Contact> {
-        // Implement your logic to get the contacts
-        // Here, I assume you have a Contact data class with a phoneNumber property
-        return listOf(
-            //Contact("0555529412")
-            // Add more contacts as needed
-        )
+    private fun sendPushNotification(message: String) {
+        lifecycleScope.launch(Dispatchers.IO) {
+            val user = userDao.getUser()
+            val notification = user?.let {
+                Notification(
+                    //topic = it.phone,
+                    topic = "news",
+                    title = "Notification de chute",
+                    message = message
+                )
+            }
+            if (notification != null) {
+                withContext(Dispatchers.Main) {
+                    fallsViewModel.sendNotification(notification)
+                }
+            }
+        }
+
     }
 
+    private fun sendSMS(message: String) {
+        contactsViewModel.observeContactsList().observe(this) { contacts ->
+            contacts.forEach { contact ->
+                smsHelper.sendSMS(contact.phone, message)
+            }
+        }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun getCurrentDateTimeFormatted(): String {
+        val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSXXX")
+        val instant = Instant.ofEpochMilli(System.currentTimeMillis())
+        val offsetDateTime = OffsetDateTime.ofInstant(instant, ZoneOffset.UTC)
+        return offsetDateTime.format(formatter)
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
     private fun addFallToDatabase(status: String) {
         val fall = FallWithoutID(
             place = Place(
@@ -139,15 +200,28 @@ class AlertActivity : AppCompatActivity() {
                 longitude = 0.0
             ),
             status = status,
-            dateTime = System.currentTimeMillis().toString()
+            dateTime = getCurrentDateTimeFormatted()
         )
+        Log.d("dateTime",fall.dateTime)
         fallsViewModel.addFall(fall)
+    }
+
+    private fun observeAddedFall() {
+        fallsViewModel.addFallResponse.observe(this, Observer { response ->
+            response?.let {
+                fallId =  it.data._id
+            }
+        })
+    }
+
+    private fun updateFallStatus(status: String) {
+        fallsViewModel.updateFallStatus(fallId, status)
     }
 
     private fun restartModel() {
         val intent = Intent(this, MainActivity::class.java)
         startActivity(intent)
-        finish() // Close the AlertActivity
+        finish()
     }
 
     private fun playIgnoreSound() {
@@ -181,15 +255,6 @@ class AlertActivity : AppCompatActivity() {
     override fun onPause() {
         super.onPause()
         locationHelper.stopLocationUpdates()
-    }
-
-    private fun sendTestNotification() {
-        val message = "Votre application a détecté une chute"
-        val notificationIntent = Intent(this, NotificationHelper::class.java).apply {
-            putExtra("title", "Notification de chute")
-            putExtra("message", message)
-        }
-        startService(notificationIntent)
     }
 
     data class Contact(val phoneNumber: String)

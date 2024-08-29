@@ -16,6 +16,8 @@ import com.example.appfall.data.models.AddFallResponse
 import com.example.appfall.data.models.FallFilter
 import com.example.appfall.data.models.FallStatus
 import com.example.appfall.data.models.FallWithoutID
+import com.example.appfall.data.models.Notification
+import com.example.appfall.data.models.NotificationResponse
 import com.example.appfall.data.models.Place
 import com.example.appfall.data.models.UpdateResponse
 import com.example.appfall.retrofit.RetrofitInstance
@@ -41,6 +43,9 @@ class FallsViewModel(application: Application) : AndroidViewModel(application) {
 
     private val _addFallResponse: MutableLiveData<AddFallResponse> = MutableLiveData()
     val addFallResponse: LiveData<AddFallResponse> = _addFallResponse
+
+    private val _notificationResponse: MutableLiveData<NotificationResponse> = MutableLiveData()
+    val notificationResponse: LiveData<NotificationResponse> = _notificationResponse
 
     private val _addErrorStatus: MutableLiveData<String> = MutableLiveData()
     val addErrorStatus: LiveData<String> = _addErrorStatus
@@ -173,6 +178,31 @@ class FallsViewModel(application: Application) : AndroidViewModel(application) {
                 val errorMessage = t.message ?: "Une erreur s'est produite lors de l'ajout de la chute"
                 _addErrorStatus.postValue(errorMessage)
                 Log.e("FallsViewModel", "Failed to add fall to remote server: $errorMessage", t)
+            }
+        })
+    }
+
+    fun sendNotification(notification: Notification) {
+        RetrofitInstance.fallApi.sendNotification(notification).enqueue(object : Callback<NotificationResponse> {
+            override fun onResponse(call: Call<NotificationResponse>, response: Response<NotificationResponse>) {
+                if (response.isSuccessful) {
+                    // Store the notification response in a new LiveData variable
+                    _notificationResponse.value = response.body()
+                    Log.d("FallsViewModel", "Notification sent successfully: ${response.body()}")
+                    // Optionally refresh falls list or take other actions if necessary
+                    // getFalls() // Uncomment if you want to refresh falls list on successful notification
+                } else {
+                    // Handle unsuccessful response
+                    handleErrorResponse(response.errorBody())
+                    Log.e("FallsViewModel", "Failed to send notification to remote server: ${response.message()}")
+                }
+            }
+
+            override fun onFailure(call: Call<NotificationResponse>, t: Throwable) {
+                // Handle request failure
+                val errorMessage = t.message ?: "Une erreur s'est produite lors de l'envoi de la notification"
+                _addErrorStatus.postValue(errorMessage)
+                Log.e("FallsViewModel", "Failed to send notification to remote server: $errorMessage", t)
             }
         })
     }

@@ -48,11 +48,11 @@ class FallsAdapter(private val fallsViewModel: FallsViewModel) : RecyclerView.Ad
         fun bind(fall: Fall) {
             binding.apply {
 
-                fallDate.text = "30-05-2024"
+                fallDate.text = fall.dateTime
                 fallTitle.text = "Fall ${counter++}"
                 fallStatus.text = fall.status
                 fallLocation.text = "https://maps.google.com/?q=${fall.place.latitude},${fall.place.longitude}"
-                fallTime.text = "09:06"
+                fallTime.text = fall.dateTime
 
                 val context = binding.root.context
                 val backgroundColor = when (fall.status) {

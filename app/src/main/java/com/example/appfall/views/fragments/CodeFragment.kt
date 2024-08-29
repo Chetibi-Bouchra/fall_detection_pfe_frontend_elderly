@@ -98,8 +98,8 @@ class CodeFragment : Fragment() {
                 println("phone $phone")
                 println("token $token")
                 val secretCode = "$phone:$randomCode"
-                val width = 1000
-                val height = 1000
+                val width = 1100
+                val height = 1100
 
                 // Generate QR code asynchronously
                 lifecycleScope.launch {

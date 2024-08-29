@@ -8,6 +8,8 @@ import com.example.appfall.data.models.FallStatus
 import com.example.appfall.data.models.FallWithoutID
 import com.example.appfall.data.models.FallsResponse
 import com.example.appfall.data.models.LoginResponse
+import com.example.appfall.data.models.Notification
+import com.example.appfall.data.models.NotificationResponse
 import com.example.appfall.data.models.UpdateResponse
 import com.example.appfall.data.models.User
 import com.example.appfall.data.models.UserCredential
@@ -69,4 +71,10 @@ interface FallAPI {
         @Header("Authorization") token: String,
         @Body request: FallWithoutID,
     ): Call<AddFallResponse>
+
+    @POST("notifications/sendNotification")
+    fun sendNotification(
+        /*@Header("Authorization") token: String,*/
+        @Body request: Notification,
+    ): Call<NotificationResponse>
 }
