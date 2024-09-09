@@ -2,15 +2,22 @@ package com.example.appfall.adapters
 
 import android.content.Intent
 import android.net.Uri
+import android.os.Build
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.example.appfall.R
 import com.example.appfall.databinding.FallBinding
 import com.example.appfall.data.models.Fall
 import com.example.appfall.viewModels.FallsViewModel
+import java.time.LocalDateTime
+import java.time.ZoneId
+import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
+import java.time.format.DateTimeParseException
 
 class FallsAdapter(private val fallsViewModel: FallsViewModel) : RecyclerView.Adapter<FallsAdapter.FallsViewHolder>() {
     private var fallsList = ArrayList<Fall>()
@@ -30,6 +37,7 @@ class FallsAdapter(private val fallsViewModel: FallsViewModel) : RecyclerView.Ad
         return fallsList.size
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onBindViewHolder(holder: FallsViewHolder, position: Int) {
         val fall = fallsList[position]
         holder.bind(fall)
@@ -45,15 +53,39 @@ class FallsAdapter(private val fallsViewModel: FallsViewModel) : RecyclerView.Ad
             }
         }
 
+        @RequiresApi(Build.VERSION_CODES.O)
         fun bind(fall: Fall) {
             binding.apply {
 
-                fallDate.text = fall.dateTime
-                fallTitle.text = "Fall ${counter++}"
-                fallStatus.text = fall.status
-                fallLocation.text = "https://maps.google.com/?q=${fall.place.latitude},${fall.place.longitude}"
-                fallTime.text = fall.dateTime
+                // Extract date and time
+                val dateTimeString = fall.dateTime
+                val dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+                val timeFormatter = DateTimeFormatter.ofPattern("HH:mm")
 
+                try {
+                    val dateTime = ZonedDateTime.parse(dateTimeString) // Parses the ISO 8601 format including timezone
+                    val date = dateTime.toLocalDate().format(dateFormatter)
+                    val time = dateTime.toLocalTime().format(timeFormatter)
+                    fallDate.text = date
+                    fallTime.text = time
+                } catch (e: DateTimeParseException) {
+                    fallDate.text = "Invalid Date"
+                    fallTime.text = "Invalid Time"
+                }
+
+                // Update title and status
+                fallTitle.text = "Chute ${counter++}"
+                fallStatus.text = when (fall.status) {
+                    "rescued" -> "traitée"
+                    "active" -> "active"
+                    "false" -> "fausse"
+                    else -> fall.status // Default case
+                }
+
+                // Update location link
+                fallLocation.text = "https://maps.google.com/?q=${fall.place.latitude},${fall.place.longitude}"
+
+                // Set background color based on status
                 val context = binding.root.context
                 val backgroundColor = when (fall.status) {
                     "rescued" -> ContextCompat.getColor(context, R.color.colorRescued)
@@ -61,8 +93,9 @@ class FallsAdapter(private val fallsViewModel: FallsViewModel) : RecyclerView.Ad
                     "false" -> ContextCompat.getColor(context, R.color.colorFalse)
                     else -> ContextCompat.getColor(context, R.color.white)
                 }
-                binding.root.setBackgroundColor(backgroundColor)
+                binding.constraintLayout.setBackgroundColor(backgroundColor)
 
+                // Expand/Collapse functionality
                 expandArrow.setOnClickListener {
                     if (expandableView.visibility == View.GONE) {
                         expandableView.visibility = View.VISIBLE
@@ -70,29 +103,32 @@ class FallsAdapter(private val fallsViewModel: FallsViewModel) : RecyclerView.Ad
                         if (fall.status == "active") {
                             btnRescued.visibility = View.VISIBLE
                             btnFalse.visibility = View.VISIBLE
-                            binding.btnFalse.setOnClickListener {
+                            btnFalse.setOnClickListener {
                                 fallsViewModel.updateFallStatus(fall._id, "false")
-                                statusText.visibility = View.VISIBLE
-                                statusText.text = "false"
                                 btnRescued.visibility = View.GONE
                                 btnFalse.visibility = View.GONE
+                                statusText.visibility = View.VISIBLE
+                                statusText.text = "fausse"
                             }
-                            binding.btnRescued.setOnClickListener {
+                            btnRescued.setOnClickListener {
                                 fallsViewModel.updateFallStatus(fall._id, "rescued")
-                                statusText.visibility = View.VISIBLE
-                                statusText.text = "rescued"
                                 btnRescued.visibility = View.GONE
                                 btnFalse.visibility = View.GONE
+                                statusText.visibility = View.VISIBLE
+                                statusText.text = "traitée"
+
                             }
-                        }
-                        else {
+                        } else {
                             btnRescued.visibility = View.GONE
                             btnFalse.visibility = View.GONE
                             statusText.visibility = View.VISIBLE
-                            statusText.text = fall.status
+                            statusText.text = when (fall.status) {
+                                "rescued" -> "traitée"
+                                "active" -> "active"
+                                "false" -> "fausse"
+                                else -> fall.status // Default case
+                            }
                         }
-
-
                     } else {
                         expandableView.visibility = View.GONE
                         expandArrow.setImageResource(R.drawable.ic_expand_arrow)

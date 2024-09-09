@@ -4,6 +4,10 @@ import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import android.app.Service
 import android.content.Context
 import android.content.Intent
@@ -13,6 +17,7 @@ import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import android.os.Build
 import android.os.Bundle
+import android.os.CountDownTimer
 import android.os.IBinder
 import android.util.Log
 import androidx.core.app.NotificationCompat
@@ -30,17 +35,44 @@ import kotlin.math.atan2
 import kotlin.math.pow
 import kotlin.math.sqrt
 import android.speech.tts.TextToSpeech
+import android.view.View
 import androidx.annotation.RequiresApi
+import androidx.lifecycle.lifecycleScope
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.example.appfall.R
+import com.example.appfall.data.repositories.dataStorage.UserDao
+import com.example.appfall.viewModels.ContactsViewModel
+import com.example.appfall.viewModels.FallsViewModel
+import com.example.appfall.viewModels.UserViewModel
+import com.example.appfall.data.models.ConnectedSupervisor
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.util.Locale
+import androidx.lifecycle.Observer
+import com.example.appfall.data.daoModels.FallDaoModel
+import com.example.appfall.data.models.FallWithoutID
+import com.example.appfall.data.models.Place
+import com.example.appfall.data.repositories.AppDatabase
+import com.example.appfall.views.activities.AlertActivity
+import java.time.Instant
+import java.time.OffsetDateTime
+import java.time.ZoneOffset
+import java.time.format.DateTimeFormatter
 
-class InferenceService : Service(), SensorEventListener, TextToSpeech.OnInitListener {
+class InferenceService : Service(), SensorEventListener {
 
     private lateinit var sensorManager: SensorManager
     private var accelerometer: Sensor? = null
-    private lateinit var tts: TextToSpeech
-    private var isTtsInitialized = false
+    private val coroutineScope = CoroutineScope(Dispatchers.IO)
+    private var contactsObserver: Observer<List<ConnectedSupervisor>?>? = null
+
+    private lateinit var smsHelper: SmsHelper
+    private lateinit var userDao: UserDao
+    private lateinit var fallsViewModel: FallsViewModel
+    private lateinit var contactsViewModel: ContactsViewModel
+    private lateinit var networkHelper: NetworkHelper
+    private lateinit var soundHelper: SoundHelper
+
 
     private val windowSize = 200
     private val accX = mutableListOf<Float>()
@@ -55,10 +87,17 @@ class InferenceService : Service(), SensorEventListener, TextToSpeech.OnInitList
         super.onCreate()
         createNotificationChannel()
 
+        smsHelper = SmsHelper(this)
+        userDao = AppDatabase.getInstance(this).userDao()
+        fallsViewModel = FallsViewModel(application)
+        contactsViewModel = ContactsViewModel(application)
+        networkHelper = NetworkHelper(this)
+        soundHelper = SoundHelper(this)
+
         val notification = NotificationCompat.Builder(this, CHANNEL_ID)
-            .setContentTitle("Inference Service")
-            .setContentText("Collecting and processing sensor data")
-            .setSmallIcon(R.drawable.ic_launcher_background)
+            .setContentTitle("Détection de chutes")
+            .setContentText("La détection de chutes est activée")
+            .setSmallIcon(R.drawable.ic_fall)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setOngoing(true)
             .build()
@@ -74,8 +113,10 @@ class InferenceService : Service(), SensorEventListener, TextToSpeech.OnInitList
             Log.e("SensorService", "Accelerometer sensor not available")
         }
 
-        // Initialize TextToSpeech
-        tts = TextToSpeech(this, this)
+    }
+
+    private fun playIgnoreSound() {
+        soundHelper.playSound(R.raw.notification_sound)
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
@@ -97,19 +138,7 @@ class InferenceService : Service(), SensorEventListener, TextToSpeech.OnInitList
         return START_STICKY
     }
 
-    override fun onInit(status: Int) {
-        if (status == TextToSpeech.SUCCESS) {
-            val result = tts.setLanguage(Locale.ENGLISH)
-            isTtsInitialized = result != TextToSpeech.LANG_MISSING_DATA && result != TextToSpeech.LANG_NOT_SUPPORTED
-            if (!isTtsInitialized) {
-                Log.e("SensorService", "TextToSpeech language is not supported")
-            }
-        } else {
-            Log.e("SensorService", "TextToSpeech initialization failed")
-            isTtsInitialized = false
-        }
-    }
-
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onSensorChanged(event: SensorEvent) {
         if (event.sensor.type == Sensor.TYPE_ACCELEROMETER) {
             accX.add(event.values[0])
@@ -158,6 +187,7 @@ class InferenceService : Service(), SensorEventListener, TextToSpeech.OnInitList
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     private fun handleModelOutput(modelOutput: FloatArray) {
         val classes = arrayOf("BSC", "CHU", "CSI", "CSO", "FKL", "FOL", "JOG", "JUM", "LYI", "SCH", "SDL", "SIT", "STD", "STN", "STU", "WAL")
         val maxIndex = modelOutput.indices.maxByOrNull { modelOutput[it] } ?: -1
@@ -165,10 +195,125 @@ class InferenceService : Service(), SensorEventListener, TextToSpeech.OnInitList
 
         Log.d("SensorService", "Predicted activity: $result")
 
+        // Determine if the result is a fall
+        if (result in arrayOf("FOL", "FKL", "BSC", "SDL")) {
+            val activityManager = getSystemService(Context.ACTIVITY_SERVICE) as android.app.ActivityManager
+            val isAppForeground = activityManager.runningAppProcesses.any { it.importance == android.app.ActivityManager.RunningAppProcessInfo.IMPORTANCE_FOREGROUND }
+
+            if (isAppForeground) {
+                val alertIntent = Intent(this, AlertActivity::class.java).apply {
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                }
+                startActivity(alertIntent)
+            } else {
+                Log.d("SensorService", "App is in the foreground")
+                addFall("active")
+                sendNotification("Une chute a été détectée")
+                playIgnoreSound()
+
+            }
+        } else {
+
+        }
+
         // Prepare the local broadcast intent
-        val intent = Intent("SENSOR_RESULT_ACTION")
-        intent.putExtra("result", if (result in arrayOf("FOL", "FKL", "BSC", "SDL")) "fall" else "nonfall")
+        val intent = Intent("SENSOR_RESULT_ACTION").apply {
+            putExtra("result", if (result in arrayOf("FOL", "FKL", "BSC", "SDL")) "fall" else "nonfall")
+            putExtra("timer", "timerValue") // Add the timer value here
+        }
         LocalBroadcastManager.getInstance(this).sendBroadcast(intent)
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun addFall(status: String) {
+        Log.d("SensorService", "Adding fall with status: $status")
+        if (networkHelper.isInternetAvailable()) {
+            addFallToDatabase(status)
+        } else {
+            addFallOffline(status)
+        }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun addFallToDatabase(status: String) {
+        val fall = FallWithoutID(
+            place = Place(
+                latitude = 0.0,
+                longitude = 0.0
+            ),
+            status = status,
+            dateTime = getCurrentDateTimeFormatted()
+        )
+        Log.d("dateTime",fall.dateTime)
+        fallsViewModel.addFall(fall)
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun addFallOffline(status: String) {
+        val fall = FallDaoModel(
+            id = System.currentTimeMillis().toString(),
+            latitude = 0.0,
+            longitude = 0.0,
+            status = status,
+            datetime = getCurrentDateTimeFormatted()
+        )
+
+        fallsViewModel.addFallOffline(fall)
+
+        /*lifecycleScope.launch(Dispatchers.IO) {
+            val fallsDao = AppDatabase.getInstance(this@AlertActivity).fallDao()
+            Log.d("OfflineFalls", fallsDao.getAllFalls().toString())
+        }*/
+
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun getCurrentDateTimeFormatted(): String {
+        val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSXXX")
+        val instant = Instant.ofEpochMilli(System.currentTimeMillis())
+        val offsetDateTime = OffsetDateTime.ofInstant(instant, ZoneOffset.UTC)
+        return offsetDateTime.format(formatter)
+    }
+
+    private fun sendNotification(message: String) {
+        if (networkHelper.isInternetAvailable()) {
+            sendPushNotification(message)
+        } else {
+            sendSMS(message)
+        }
+    }
+
+    private fun sendPushNotification(message: String) {
+        coroutineScope.launch {
+            val user = userDao.getUser()
+            val notification = user?.let {
+                com.example.appfall.data.models.Notification(
+                    //topic = it.phone,
+                    topic = "news",
+                    title = "Notification de chute",
+                    message = message
+                )
+            }
+            if (notification != null) {
+                withContext(Dispatchers.Main) {
+                    fallsViewModel.sendNotification(notification)
+                }
+            }
+        }
+    }
+
+    private fun sendSMS(message: String) {
+        val observer = Observer<List<ConnectedSupervisor>?> { contacts ->
+            contacts?.forEach { contact ->
+                smsHelper.sendSMS(contact.phone, message)
+            }
+        }
+
+        // Observe contacts list
+        contactsViewModel.observeContactsList().observeForever(observer)
+
+        // If you need to remove the observer later, you can call:
+        // contactsViewModel.observeContactsList().removeObserver(observer)
     }
 
     override fun onAccuracyChanged(sensor: Sensor, accuracy: Int) {
@@ -178,11 +323,10 @@ class InferenceService : Service(), SensorEventListener, TextToSpeech.OnInitList
     override fun onDestroy() {
         super.onDestroy()
         sensorManager.unregisterListener(this)
-        if (::tts.isInitialized) {
-            tts.stop()
-            tts.shutdown()
-        }
         Log.d("SensorService", "Service destroyed and resources released")
+        contactsObserver?.let {
+            contactsViewModel.observeContactsList().removeObserver(it)
+        }
     }
 
     override fun onBind(intent: Intent?): IBinder? {

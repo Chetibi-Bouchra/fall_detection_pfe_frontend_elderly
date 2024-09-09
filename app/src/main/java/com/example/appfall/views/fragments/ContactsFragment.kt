@@ -1,7 +1,7 @@
 package com.example.appfall.views.fragments
 
-import com.example.appfall.viewModels.ContactsViewModel
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -11,7 +11,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.appfall.adapters.ContactsAdapter
 import com.example.appfall.databinding.FragmentContactsBinding
 import com.example.appfall.services.NetworkHelper
-import com.example.appfall.websockets.WebSocketManager
+import com.example.appfall.viewModels.ContactsViewModel
 
 class ContactsFragment : Fragment() {
 
@@ -22,6 +22,7 @@ class ContactsFragment : Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // Initialize ViewModel and other dependencies
         contactsViewModel = ViewModelProvider(this)[ContactsViewModel::class.java]
         contactsAdapter = ContactsAdapter()
         networkHelper = NetworkHelper(requireContext())
@@ -38,41 +39,53 @@ class ContactsFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        if (networkHelper.isInternetAvailable()) {
+        setupRecyclerView()
+        observeContacts()
+        loadContacts()
+    }
 
-            binding.noNetworkLayout.visibility = View.GONE
-            binding.contactsList.apply {
-                layoutManager = LinearLayoutManager(requireContext())
-                adapter = contactsAdapter
-            }
-
-            observeContacts()
-            loadContacts()
-
-        } else {
-            binding.noNetworkLayout.visibility = View.VISIBLE
-            binding.progressBar.visibility = View.GONE
-            binding.contactsList.visibility = View.VISIBLE
-            binding.noContactsText.visibility = View.VISIBLE
+    private fun setupRecyclerView() {
+        binding.contactsList.apply {
+            layoutManager = LinearLayoutManager(requireContext())
+            adapter = contactsAdapter
         }
-
     }
 
     private fun loadContacts() {
         binding.progressBar.visibility = View.VISIBLE
-        contactsViewModel.getContacts()
+        binding.contactsList.visibility = View.GONE
+
+        if (networkHelper.isInternetAvailable()) {
+            binding.noNetworkLayout.visibility = View.GONE
+            Log.d("ContactsFragment", "Loading contacts from network")
+            contactsViewModel.getContactsNetwork()
+        } else {
+            binding.noNetworkLayout.visibility = View.VISIBLE
+            Log.d("ContactsFragment", "Loading contacts from local storage")
+            contactsViewModel.getContactsOffline()
+        }
     }
 
     private fun observeContacts() {
         contactsViewModel.observeContactsList().observe(viewLifecycleOwner) { contacts ->
             binding.progressBar.visibility = View.GONE
-            if (contacts.isNullOrEmpty()) {
+
+            if (contacts == null) {
+                Log.d("ContactsFragment", "Contacts are null")
+                binding.noContactsText.visibility = View.GONE
                 binding.contactsList.visibility = View.GONE
+                binding.errorTextViewLayout.visibility = View.VISIBLE
+            } else if (contacts.isEmpty()) {
+                Log.d("ContactsFragment", "Contacts are empty")
                 binding.noContactsText.visibility = View.VISIBLE
+                binding.contactsList.visibility = View.GONE
+                binding.errorTextViewLayout.visibility = View.GONE
             } else {
+                Log.d("ContactsFragment", "Contacts are loaded: $contacts")
                 binding.noContactsText.visibility = View.GONE
                 binding.contactsList.visibility = View.VISIBLE
-                contactsAdapter.setContacts(ArrayList(contacts))
+                binding.errorTextViewLayout.visibility = View.GONE
+                contactsAdapter.setContacts(contacts)
             }
         }
     }

@@ -3,7 +3,6 @@ package com.example.appfall.data.daoModels
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import java.util.Date
 
 @Entity(tableName = "falls")
 data class FallDaoModel(
@@ -13,5 +12,5 @@ data class FallDaoModel(
     val longitude: Double,
     val latitude: Double,
     val status: String,
-    val datetime: Long
+    val datetime: String
 )

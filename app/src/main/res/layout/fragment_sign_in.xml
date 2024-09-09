@@ -2,6 +2,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/white"
     tools:context=".views.fragments.SignInFragment">
 
     <RelativeLayout
@@ -49,7 +50,8 @@
                 android:paddingTop="4dp"
                 android:paddingEnd="8dp"
                 android:paddingBottom="4dp"
-                android:textSize="16sp" />
+                android:textCursorDrawable="@drawable/cursor_color"
+                android:textSize="16sp"/>
 
             <TextView
                 android:id="@+id/phone_warning"
@@ -77,6 +79,7 @@
                     android:paddingTop="4dp"
                     android:paddingEnd="40dp"
                     android:paddingBottom="4dp"
+                    android:textCursorDrawable="@drawable/cursor_color"
                     android:textSize="16sp"/>
 
                 <ImageView

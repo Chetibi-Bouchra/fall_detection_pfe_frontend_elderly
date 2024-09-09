@@ -4,6 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/white"
     tools:context=".views.fragments.ContactsFragment">
 
     <androidx.recyclerview.widget.RecyclerView
@@ -14,7 +15,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"/>
+        app:layout_constraintTop_toBottomOf="@id/noNetworkLayout"/>
 
     <ProgressBar
         android:id="@+id/progress_bar"
@@ -46,7 +47,7 @@
     <FrameLayout
         android:id="@+id/noNetworkLayout"
         android:layout_width="match_parent"
-        android:layout_height="100dp"
+        android:layout_height="80dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.0"
@@ -81,6 +82,30 @@
                 android:textSize="14sp" />
         </LinearLayout>
 
+    </FrameLayout>
+
+    <FrameLayout
+        android:id="@+id/errorTextViewLayout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <!-- No Data TextView -->
+        <TextView
+            android:id="@+id/errorTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginTop="16dp"
+            android:fontFamily="@font/myfont"
+            android:text="Une erreur s'est produite lors du chargement des données"
+            android:textAlignment="center"
+            android:textColor="#BF3131"
+            android:textSize="18sp" />
     </FrameLayout>
 
 

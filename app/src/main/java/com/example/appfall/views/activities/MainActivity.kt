@@ -6,12 +6,8 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
-import android.hardware.Sensor
-import android.hardware.SensorEventListener
-import android.hardware.SensorManager
 import android.os.Bundle
 import android.util.Log
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
@@ -29,7 +25,6 @@ import com.example.appfall.databinding.ActivityMainBinding
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import com.example.appfall.services.SoundHelper
 import com.example.appfall.utils.PermissionHelper
 import com.example.appfall.viewModels.ContactsViewModel
@@ -68,7 +63,7 @@ class MainActivity : AppCompatActivity() {
 
         userDao = AppDatabase.getInstance(this).userDao()
 
-        observeInDanger()
+        //observeInDanger()
 
         val bottomNavigation = findViewById<BottomNavigationView>(R.id.btm_nav)
         val navController = Navigation.findNavController(this, R.id.host_fragment)
@@ -184,14 +179,17 @@ class MainActivity : AppCompatActivity() {
     private val sensorResultReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             val result = intent?.getStringExtra("result") ?: "unknown"
+            val timer = intent?.getStringExtra("timer") ?: "unknown"
             Log.d("FallResult", result)
             lifecycleScope.launch(Dispatchers.IO) {
                 if (result == "fall") {
                     userViewModel.updateInDangerStatus(true)
                     Log.d("UserFallInfoTrue", userDao.getUser()?.inDanger.toString())
+                    Log.d("Timer", timer)
                 } else {
                     userViewModel.updateInDangerStatus(false)
                     Log.d("MainActivity", "Predicted activity: $result")
+                    Log.d("Timer", timer)
                 }
             }
         }

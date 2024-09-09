@@ -9,6 +9,7 @@ import android.widget.Toast
 class SensorResultReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context?, intent: Intent?) {
         val result = intent?.getStringExtra("result") ?: "unknown"
+        val timer = intent?.getStringExtra("timer") ?: "unknown"
         if (result == "fall") {
             Toast.makeText(context, "Fall detected!", Toast.LENGTH_LONG).show()
         } else {

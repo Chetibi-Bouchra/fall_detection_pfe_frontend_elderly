@@ -18,7 +18,7 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.example.appfall.R
-import com.example.appfall.data.models.Fall
+import com.example.appfall.data.daoModels.FallDaoModel
 import com.example.appfall.data.models.FallWithoutID
 import com.example.appfall.data.models.Notification
 import com.example.appfall.data.models.Place
@@ -28,7 +28,6 @@ import com.example.appfall.databinding.ActivityAlertBinding
 import com.example.appfall.services.InferenceService
 import com.example.appfall.services.LocationHelper
 import com.example.appfall.services.NetworkHelper
-import com.example.appfall.services.NotificationHelper
 import com.example.appfall.services.SmsHelper
 import com.example.appfall.services.SoundHelper
 import com.example.appfall.viewModels.ContactsViewModel
@@ -61,6 +60,8 @@ class AlertActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        stopFallDetectionService()
+
         fallsViewModel = ViewModelProvider(this)[FallsViewModel::class.java]
         contactsViewModel = ViewModelProvider(this)[ContactsViewModel::class.java]
         networkHelper = NetworkHelper(this)
@@ -88,7 +89,7 @@ class AlertActivity : AppCompatActivity() {
                 userViewModel.updateInDangerStatus(false)
                 Log.d("UserFallInfoAlert", userDao.getUser()?.inDanger.toString())
             }
-            addFallToDatabase("false")
+            addFall("false")
             restartModel()
         }
 
@@ -106,6 +107,11 @@ class AlertActivity : AppCompatActivity() {
         observeAddedFall()
     }
 
+    private fun stopFallDetectionService() {
+        Intent(this, InferenceService::class.java).also { intent ->
+            stopService(intent)
+        }
+    }
 
     private fun startTimer() {
         binding.progressTimer.max = (timeLeftInMillis / 1000).toInt()
@@ -125,7 +131,7 @@ class AlertActivity : AppCompatActivity() {
                 binding.buttonFalseAlert.visibility = View.VISIBLE
                 sendNotification("Une chute a été détectée")
                 lifecycleScope.launch(Dispatchers.IO) {
-                    addFallToDatabase("active")
+                    addFall("active")
                 }
             }
         }.start()
@@ -140,7 +146,7 @@ class AlertActivity : AppCompatActivity() {
     @RequiresApi(Build.VERSION_CODES.O)
     private fun handleFallEvent(status: String) {
         sendNotification(status)
-        updateFallStatus(status)
+        updateFall(status)
         lifecycleScope.launch(Dispatchers.IO) {
             userViewModel.updateInDangerStatus(false)
             Log.d("UserFallInfoAlertFalse", userDao.getUser()?.inDanger.toString())
@@ -178,7 +184,7 @@ class AlertActivity : AppCompatActivity() {
 
     private fun sendSMS(message: String) {
         contactsViewModel.observeContactsList().observe(this) { contacts ->
-            contacts.forEach { contact ->
+            contacts?.forEach { contact ->
                 smsHelper.sendSMS(contact.phone, message)
             }
         }
@@ -190,6 +196,15 @@ class AlertActivity : AppCompatActivity() {
         val instant = Instant.ofEpochMilli(System.currentTimeMillis())
         val offsetDateTime = OffsetDateTime.ofInstant(instant, ZoneOffset.UTC)
         return offsetDateTime.format(formatter)
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun addFall(status: String) {
+        if (networkHelper.isInternetAvailable()) {
+            addFallToDatabase(status)
+        } else {
+            addFallOffline(status)
+        }
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
@@ -206,6 +221,25 @@ class AlertActivity : AppCompatActivity() {
         fallsViewModel.addFall(fall)
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun addFallOffline(status: String) {
+        val fall = FallDaoModel(
+            id = System.currentTimeMillis().toString(),
+            latitude = 0.0,
+            longitude = 0.0,
+            status = status,
+            datetime = getCurrentDateTimeFormatted()
+        )
+
+        fallsViewModel.addFallOffline(fall)
+
+        lifecycleScope.launch(Dispatchers.IO) {
+            val fallsDao = AppDatabase.getInstance(this@AlertActivity).fallDao()
+            Log.d("OfflineFalls", fallsDao.getAllFalls().toString())
+        }
+
+    }
+
     private fun observeAddedFall() {
         fallsViewModel.addFallResponse.observe(this, Observer { response ->
             response?.let {
@@ -214,8 +248,20 @@ class AlertActivity : AppCompatActivity() {
         })
     }
 
+    private fun updateFall(status: String) {
+        if (networkHelper.isInternetAvailable()) {
+            updateFallStatus(status)
+        } else {
+            updateOfflineFallStatus(status)
+        }
+    }
+
     private fun updateFallStatus(status: String) {
         fallsViewModel.updateFallStatus(fallId, status)
+    }
+
+    private fun updateOfflineFallStatus(status: String) {
+        fallsViewModel.updateOfflineFallStatus(fallId, status)
     }
 
     private fun restartModel() {

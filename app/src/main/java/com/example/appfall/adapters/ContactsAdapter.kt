@@ -2,6 +2,7 @@ package com.example.appfall.adapters
 
 import android.content.Intent
 import android.net.Uri
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
@@ -19,10 +20,13 @@ class ContactsAdapter : RecyclerView.Adapter<ContactsAdapter.ContactsViewHolder>
 
     )
 
-    fun setContacts(contactsList: ArrayList<ConnectedSupervisor>) {
-        this.contactsList = contactsList
+    fun setContacts(contactsList: List<ConnectedSupervisor>?) {
+        Log.d("ContactsAdapter", "Received contacts: $contactsList")
+        this.contactsList = contactsList?.toCollection(ArrayList()) ?: arrayListOf()
+        Log.d("ContactsAdapter", "Updated contactsList: $contactsList")
         notifyDataSetChanged()
     }
+
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ContactsViewHolder {
         val binding = ContactBinding.inflate(LayoutInflater.from(parent.context), parent, false)
@@ -35,6 +39,7 @@ class ContactsAdapter : RecyclerView.Adapter<ContactsAdapter.ContactsViewHolder>
 
     override fun onBindViewHolder(holder: ContactsViewHolder, position: Int) {
         val contact = contactsList[position]
+        Log.d("ContactsAdapterContact", "Contact: $contact")
         holder.bind(contact)
     }
 
@@ -55,6 +60,7 @@ class ContactsAdapter : RecyclerView.Adapter<ContactsAdapter.ContactsViewHolder>
 
         fun bind(contact: ConnectedSupervisor) {
             binding.apply {
+                Log.d("ContactsAdapterContact", "Contact: ${contact}")
                 contactName.text = contact.name
                 contactPhone.text = contact.phone
 

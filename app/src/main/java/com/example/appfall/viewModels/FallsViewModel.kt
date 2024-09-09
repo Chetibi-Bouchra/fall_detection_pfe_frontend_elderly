@@ -13,6 +13,7 @@ import com.example.appfall.data.repositories.AppDatabase
 import com.example.appfall.data.repositories.dataStorage.UserDao
 import com.example.appfall.data.daoModels.FallDaoModel
 import com.example.appfall.data.models.AddFallResponse
+import com.example.appfall.data.models.AddedFall
 import com.example.appfall.data.models.FallFilter
 import com.example.appfall.data.models.FallStatus
 import com.example.appfall.data.models.FallWithoutID
@@ -34,11 +35,11 @@ class FallsViewModel(application: Application) : AndroidViewModel(application) {
     private val userDao: UserDao = AppDatabase.getInstance(application).userDao()
     private val fallDao = AppDatabase.getInstance(application).fallDao()
 
-    private val mutableFallsList: MutableLiveData<List<Fall>> = MutableLiveData()
+    private val mutableFallsList: MutableLiveData<List<Fall>?> = MutableLiveData()
     private val activeFallsList: MutableLiveData<List<Fall>> = MutableLiveData()
     private val falseFallsList: MutableLiveData<List<Fall>> = MutableLiveData()
     private val rescuedFallsList: MutableLiveData<List<Fall>> = MutableLiveData()
-    private val offlineFallsList: MutableLiveData<List<FallDaoModel>> = MutableLiveData()
+    private val offlineFallsList: MutableLiveData<List<FallDaoModel>?> = MutableLiveData()
     private val combinedFallsList: MutableLiveData<List<Fall>> = MutableLiveData()
 
     private val _addFallResponse: MutableLiveData<AddFallResponse> = MutableLiveData()
@@ -56,18 +57,87 @@ class FallsViewModel(application: Application) : AndroidViewModel(application) {
             val user = userDao.getUser()
             user?.let {
                 token = it.token
-                getFalls()
-                getOfflineFalls()
+                //getFalls()
+                //getOfflineFalls()
             }
         }
     }
 
-    private fun getFalls() {
-        RetrofitInstance.fallApi.getFalls("Bearer $token", FallFilter("all")).enqueue(object : Callback<FallsResponse> {
+    private fun addFallsOffline() {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                // Retrieve the list of falls to be added (replace this with actual data retrieval logic)
+                val fallsToAdd = getFallsToAdd() // This method should return a List<FallDaoModel>
+
+                // Insert each fall into the local database
+                fallsToAdd.forEach { fall ->
+                    fallDao.insert(fall)
+                }
+            } catch (e: Exception) {
+                // Handle exceptions (e.g., log errors or notify the user)
+                Log.e("AddFallsOffline", "Error adding falls offline", e)
+            }
+        }
+    }
+
+    // Dummy function to represent data retrieval; replace with your actual implementation
+    private fun getFallsToAdd(): List<FallDaoModel> {
+        // Example data - replace with actual data retrieval logic
+        return listOf(
+            FallDaoModel(
+                id = "1",
+                longitude = 12.3456,
+                latitude = 65.4321,
+                status = "Minor",
+                datetime = System.currentTimeMillis().toString()
+            ),
+            FallDaoModel(
+                id = "2",
+                longitude = 23.4567,
+                latitude = 54.3210,
+                status = "Severe",
+                datetime = System.currentTimeMillis().toString()
+            )
+        )
+    }
+
+    fun updateOfflineFallStatus(id: String, newStatus: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                // Perform the update operation
+                fallDao.updateFallStatusById(id, newStatus)
+
+                // Optionally, handle any logic or state updates after the operation
+                withContext(Dispatchers.Main) {
+                    // Notify UI or handle post-update logic
+                    // For example, show a success message or update UI components
+                }
+            } catch (e: Exception) {
+                // Handle exceptions that might occur during the update
+                withContext(Dispatchers.Main) {
+                    // Notify UI or handle error scenarios
+                    // For example, show an error message
+                }
+                e.printStackTrace()
+            }
+        }
+    }
+
+    fun getFalls(filter: String) {
+        RetrofitInstance.fallApi.getFalls("Bearer $token", FallFilter(filter)).enqueue(object : Callback<FallsResponse> {
             override fun onResponse(call: Call<FallsResponse>, response: Response<FallsResponse>) {
                 if (response.isSuccessful) {
-                    val falls = response.body()?.data ?: emptyList()
-                    mutableFallsList.value = falls
+                    val falls = response.body()?.data ?: null
+                    if (falls != null) {
+                        if (falls.isEmpty()) {
+                            mutableFallsList.value = emptyList()
+                        } else {
+                            mutableFallsList.value = falls
+                        }
+                    }
+                    else {
+                        mutableFallsList.value = null
+                    }
                     updateCombinedFalls()
                 } else {
                     Log.d("FallsViewModel", "Error: ${response.errorBody()?.string()}")
@@ -80,13 +150,31 @@ class FallsViewModel(application: Application) : AndroidViewModel(application) {
         })
     }
 
-    private fun getOfflineFalls() {
+
+    fun getOfflineFalls() {
+        Log.d("TEEEEEEEEEEEEEST", "getOfflineFalls")
         viewModelScope.launch {
-            val falls = withContext(Dispatchers.IO) { fallDao.getAllFalls() }
-            offlineFallsList.value = falls
-            updateCombinedFalls()
+            // Fetch falls from the DAO
+            val falls = fallDao.getAllFalls()
+
+            // Map `FallDaoModel` to `Fall` using the extension function
+            val mappedFalls = falls.map { it.toFall() }
+
+            // Update LiveData on the main thread
+            withContext(Dispatchers.Main) {
+                if (mappedFalls.isEmpty()) {
+                    mutableFallsList.value = emptyList()
+                    Log.d("empty", "empty")
+                } else {
+                    mutableFallsList.value = mappedFalls
+                }
+
+                updateCombinedFalls() // Assuming you want to update the combined list after fetching offline data
+                Log.d("offlineFallsList", mutableFallsList.value.toString())
+            }
         }
     }
+
 
     private fun updateCombinedFalls() {
         val combinedList = mutableListOf<Fall>()
@@ -124,7 +212,7 @@ class FallsViewModel(application: Application) : AndroidViewModel(application) {
 
     fun observeOfflineFalls(): LiveData<List<Fall>> {
         return offlineFallsList.map { offlineFalls ->
-            offlineFalls.map { it.toFall() }
+            offlineFalls?.map { it.toFall() }!!
         }
     }
 
@@ -139,16 +227,16 @@ class FallsViewModel(application: Application) : AndroidViewModel(application) {
                     Log.d("FallsViewModel", "Fall updated successfully: $updatedFall")
 
                     // Clear relevant variables
-                    mutableFallsList.value = emptyList()
-                    activeFallsList.value = emptyList()
-                    falseFallsList.value = emptyList()
-                    rescuedFallsList.value = emptyList()
-                    offlineFallsList.value = emptyList()
-                    combinedFallsList.value = emptyList()
+//                    mutableFallsList.value = emptyList()
+//                    activeFallsList.value = emptyList()
+//                    falseFallsList.value = emptyList()
+//                    rescuedFallsList.value = emptyList()
+//                    offlineFallsList.value = emptyList()
+//                    combinedFallsList.value = emptyList()
 
                     // Refresh the falls list
-                    getFalls()
-                    getOfflineFalls()
+//                    getFalls()
+//                    getOfflineFalls()
                 } else {
                     // Handle unsuccessful response
                     Log.d("FallsViewModel", "Update failed: ${response.errorBody()?.string()}")
@@ -167,7 +255,7 @@ class FallsViewModel(application: Application) : AndroidViewModel(application) {
             override fun onResponse(call: Call<AddFallResponse>, response: Response<AddFallResponse>) {
                 if (response.isSuccessful) {
                     _addFallResponse.value = response.body()
-                    getFalls() // Refresh falls list on successful addition
+                    //getFalls() // Refresh falls list on successful addition
                 } else {
                     handleErrorResponse(response.errorBody())
                     Log.e("FallsViewModel", "Failed to add fall to remote server: ${response.message()}")
@@ -180,6 +268,61 @@ class FallsViewModel(application: Application) : AndroidViewModel(application) {
                 Log.e("FallsViewModel", "Failed to add fall to remote server: $errorMessage", t)
             }
         })
+    }
+
+    fun addFallOffline(fall: FallDaoModel) {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                // Insert the fall into the database
+                fallDao.insert(fall)
+
+                // Retrieve the newly inserted fall
+                val insertedFall = fallDao.getFallById(fall.id) // Add this method to your DAO
+
+                // Convert the insertedFall to AddedFall
+                val addedFall = AddedFall(
+                    _id = insertedFall.id,
+                    dateTime = insertedFall.datetime.toString(),
+                    place = getPlace(insertedFall.latitude, insertedFall.longitude), // Implement getPlace as needed
+                    status = insertedFall.status
+                )
+
+                // Create the response
+                val response = AddFallResponse(
+                    data = addedFall,
+                    status = "success"
+                )
+
+                // Update LiveData on the main thread
+                withContext(Dispatchers.Main) {
+                    _addFallResponse.value = response
+                }
+            } catch (e: Exception) {
+                // Handle errors (e.g., log errors or notify the user)
+                Log.e("AddFallOffline", "Error adding fall offline", e)
+
+                // Update LiveData with an error status
+                withContext(Dispatchers.Main) {
+                    _addFallResponse.value = AddFallResponse(
+                        data = AddedFall(
+                            _id = "",
+                            dateTime = "",
+                            place = Place(0.0, 0.0), // Define default place or handle appropriately
+                            status = "error"
+                        ),
+                        status = "error"
+                    )
+                }
+            }
+        }
+    }
+
+    private fun getPlace(latitude: Double, longitude: Double): Place {
+        // Replace with actual logic to convert coordinates to Place
+        return Place(
+            latitude = latitude,
+            longitude = longitude
+        )
     }
 
     fun sendNotification(notification: Notification) {
