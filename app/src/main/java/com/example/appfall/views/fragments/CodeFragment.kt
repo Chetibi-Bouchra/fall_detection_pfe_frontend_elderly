@@ -21,6 +21,7 @@ import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel
 import java.util.EnumMap
 import android.os.Handler
 import android.telephony.SmsManager
+import android.util.Log
 import android.widget.Toast
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModelProvider
@@ -115,6 +116,7 @@ class CodeFragment : Fragment() {
                     // Connect WebSocket and send message
                     WebSocketManager.connectWebSocket()
                     WebSocketManager.sendMessage("register:$token:$secretCode")
+                    Log.d("secretCode",secretCode)
                 }
             }
         }

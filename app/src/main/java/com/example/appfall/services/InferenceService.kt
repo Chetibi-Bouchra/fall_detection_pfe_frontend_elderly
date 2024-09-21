@@ -1,5 +1,6 @@
 package com.example.appfall.services
 
+import android.Manifest
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -11,6 +12,7 @@ import kotlinx.coroutines.withContext
 import android.app.Service
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
@@ -37,6 +39,8 @@ import kotlin.math.sqrt
 import android.speech.tts.TextToSpeech
 import android.view.View
 import androidx.annotation.RequiresApi
+import androidx.core.app.ActivityCompat
+import androidx.core.app.NotificationManagerCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.example.appfall.R
@@ -54,14 +58,17 @@ import com.example.appfall.data.models.FallWithoutID
 import com.example.appfall.data.models.Place
 import com.example.appfall.data.repositories.AppDatabase
 import com.example.appfall.views.activities.AlertActivity
+import com.example.appfall.views.activities.MainActivity
 import java.time.Instant
 import java.time.OffsetDateTime
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
+import kotlin.properties.Delegates
 
 class InferenceService : Service(), SensorEventListener {
 
     private lateinit var sensorManager: SensorManager
+    private lateinit var locationHelper: LocationHelper
     private var accelerometer: Sensor? = null
     private val coroutineScope = CoroutineScope(Dispatchers.IO)
     private var contactsObserver: Observer<List<ConnectedSupervisor>?>? = null
@@ -72,6 +79,8 @@ class InferenceService : Service(), SensorEventListener {
     private lateinit var contactsViewModel: ContactsViewModel
     private lateinit var networkHelper: NetworkHelper
     private lateinit var soundHelper: SoundHelper
+    private var latitude by Delegates.notNull<Double>()
+    private var longitude by Delegates.notNull<Double>()
 
 
     private val windowSize = 200
@@ -79,8 +88,10 @@ class InferenceService : Service(), SensorEventListener {
     private val accY = mutableListOf<Float>()
     private val accZ = mutableListOf<Float>()
 
-    private val CHANNEL_ID = "InferenceServiceChannel"
+    private val CHANNEL_ID = "NotificationChannel"
+    private val CHANNEL_ID2 = "InferenceServiceChannel"
     private val NOTIFICATION_ID = 1
+    private val NOTIFICATION_ID2 = 2
 
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate() {
@@ -88,21 +99,22 @@ class InferenceService : Service(), SensorEventListener {
         createNotificationChannel()
 
         smsHelper = SmsHelper(this)
+        locationHelper = LocationHelper(this)
         userDao = AppDatabase.getInstance(this).userDao()
         fallsViewModel = FallsViewModel(application)
         contactsViewModel = ContactsViewModel(application)
         networkHelper = NetworkHelper(this)
         soundHelper = SoundHelper(this)
 
-        val notification = NotificationCompat.Builder(this, CHANNEL_ID)
+        val notification = NotificationCompat.Builder(this, CHANNEL_ID2)
             .setContentTitle("Détection de chutes")
             .setContentText("La détection de chutes est activée")
-            .setSmallIcon(R.drawable.ic_fall)
+            .setSmallIcon(R.drawable.ic_falls)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setOngoing(true)
             .build()
 
-        startForeground(NOTIFICATION_ID, notification)
+        startForeground(NOTIFICATION_ID2, notification)
 
         sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
         accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
@@ -113,6 +125,16 @@ class InferenceService : Service(), SensorEventListener {
             Log.e("SensorService", "Accelerometer sensor not available")
         }
 
+        requestLocationUpdates()
+
+    }
+
+    private fun requestLocationUpdates() {
+        locationHelper.startLocationUpdates { location ->
+             latitude = location.latitude
+             longitude = location.longitude
+            Log.d("LocationUpdate2", "Latitude: $latitude, Longitude: $longitude")
+        }
     }
 
     private fun playIgnoreSound() {
@@ -206,6 +228,32 @@ class InferenceService : Service(), SensorEventListener {
                 }
                 startActivity(alertIntent)
             } else {
+                val intent = Intent(this, MainActivity::class.java).apply {
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                }
+
+                val pendingIntent = PendingIntent.getActivity(
+                    this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+                )
+                val notification = NotificationCompat.Builder(this, CHANNEL_ID)
+                    .setContentTitle("Chute détectée")
+                    .setContentText("Une chute a été détectée. Cliquez pour ouvrir.")
+                    .setSmallIcon(R.drawable.ic_fall)
+                    .setFullScreenIntent(pendingIntent, true)
+                    .setPriority(NotificationCompat.PRIORITY_HIGH)
+                    .build()
+
+                val notificationManager = NotificationManagerCompat.from(this)
+                if (ActivityCompat.checkSelfPermission(
+                        this,
+                        Manifest.permission.POST_NOTIFICATIONS
+                    ) != PackageManager.PERMISSION_GRANTED
+                ) {
+
+                    return
+                }
+                notificationManager.notify(NOTIFICATION_ID, notification)
+
                 Log.d("SensorService", "App is in the foreground")
                 addFall("active")
                 sendNotification("Une chute a été détectée")
@@ -238,8 +286,8 @@ class InferenceService : Service(), SensorEventListener {
     private fun addFallToDatabase(status: String) {
         val fall = FallWithoutID(
             place = Place(
-                latitude = 0.0,
-                longitude = 0.0
+                latitude = latitude,
+                longitude = longitude
             ),
             status = status,
             dateTime = getCurrentDateTimeFormatted()
@@ -303,17 +351,22 @@ class InferenceService : Service(), SensorEventListener {
     }
 
     private fun sendSMS(message: String) {
-        val observer = Observer<List<ConnectedSupervisor>?> { contacts ->
-            contacts?.forEach { contact ->
-                smsHelper.sendSMS(contact.phone, message)
+        coroutineScope.launch {
+            contactsViewModel.getContacts()
+            
+            val observer = Observer<List<ConnectedSupervisor>?> { contacts ->
+                contacts?.forEach { contact ->
+                    smsHelper.sendSMS(contact.phone, message)
+                }
             }
+
+            // Observe contacts list
+            contactsViewModel.observeContactsList().observeForever(observer)
+
+            // If you need to remove the observer later, you can call:
+            // contactsViewModel.observeContactsList().removeObserver(observer)
         }
 
-        // Observe contacts list
-        contactsViewModel.observeContactsList().observeForever(observer)
-
-        // If you need to remove the observer later, you can call:
-        // contactsViewModel.observeContactsList().removeObserver(observer)
     }
 
     override fun onAccuracyChanged(sensor: Sensor, accuracy: Int) {

@@ -12,8 +12,12 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.appfall.R
 import com.example.appfall.adapters.FallsAdapter
 import com.example.appfall.data.models.Fall
+import com.example.appfall.data.repositories.AppDatabase
+import com.example.appfall.data.repositories.dataStorage.UserDao
 import com.example.appfall.databinding.FragmentFallsBinding
 import com.example.appfall.services.NetworkHelper
+import com.example.appfall.services.SmsHelper
+import com.example.appfall.viewModels.ContactsViewModel
 import com.example.appfall.viewModels.FallsViewModel
 
 class FallsFragment : Fragment() {
@@ -22,12 +26,24 @@ class FallsFragment : Fragment() {
     private lateinit var fallsViewModel: FallsViewModel
     private lateinit var fallsAdapter: FallsAdapter
     private lateinit var networkHelper: NetworkHelper
+    private lateinit var smsHelper: SmsHelper
+    private lateinit var contactsViewModel: ContactsViewModel
+    private lateinit var userDao: UserDao
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        fallsViewModel = ViewModelProvider(this)[FallsViewModel::class.java]
-        fallsAdapter = FallsAdapter(fallsViewModel)
+
+        // Initialize helpers and DAO
         networkHelper = NetworkHelper(requireContext())
+        userDao = AppDatabase.getInstance(requireContext()).userDao()
+        smsHelper = SmsHelper(requireContext())
+
+        // Initialize ViewModels
+        fallsViewModel = ViewModelProvider(this).get(FallsViewModel::class.java)
+        contactsViewModel = ViewModelProvider(this).get(ContactsViewModel::class.java)
+
+        // Initialize the adapter
+        fallsAdapter = FallsAdapter(fallsViewModel, contactsViewModel, smsHelper, userDao, networkHelper, this)
     }
 
     override fun onCreateView(
@@ -48,21 +64,22 @@ class FallsFragment : Fragment() {
         }
 
         // Initialize data based on network availability
+        showProgressBar() // Show the progress bar first
+
         if (networkHelper.isInternetAvailable()) {
-            showProgressBar()
+            //fallsViewModel.getFalls("all")
             fallsViewModel.observeFallsList().observe(viewLifecycleOwner) { falls ->
-                hideProgressBar()
+                hideProgressBar() // Hide the progress bar when data is received
                 handleFalls(falls)
             }
-            fallsViewModel.getFalls("all")
         } else {
-            showProgressBar()
+            //fallsViewModel.getOfflineFalls()
             fallsViewModel.observeOfflineFalls().observe(viewLifecycleOwner) { falls ->
-                hideProgressBar()
+                hideProgressBar() // Hide the progress bar when data is received
                 handleFalls(falls)
             }
-            fallsViewModel.getOfflineFalls()
         }
+
 
         // Set up filter button listeners
         binding.btnAll.setOnClickListener { handleFilterButtonClick("all") }
@@ -73,27 +90,25 @@ class FallsFragment : Fragment() {
     }
 
     private fun handleFilterButtonClick(filter: String) {
+        showProgressBar()
+        binding.fallsList.visibility = View.GONE
+        binding.noDataLayout.visibility = View.GONE
+        binding.noNetworkLayout.visibility = View.GONE
+
         if (networkHelper.isInternetAvailable()) {
-            showProgressBar()
-            binding.fallsList.visibility = View.GONE
-            binding.noDataLayout.visibility = View.GONE
-            binding.noNetworkLayout.visibility = View.GONE
             fallsViewModel.getFalls(filter)
             setButtonState(findButtonByFilter(filter)) { observeFallsList() }
         } else {
             if (filter == "all") {
-                showProgressBar()
-                binding.fallsList.visibility = View.GONE
-                binding.noDataLayout.visibility = View.GONE
-                binding.noNetworkLayout.visibility = View.GONE
+                binding.progressBar.visibility = View.VISIBLE
                 fallsViewModel.getOfflineFalls()
-                setButtonState(binding.btnOffline) { observeOfflineFalls() }
+                setButtonState(findButtonByFilter(filter)) { observeOfflineFalls() }
             } else {
                 binding.fallsList.visibility = View.GONE
-                binding.progressBarLayout.visibility = View.GONE
-                binding.noDataLayout.visibility = View.GONE
+                binding.progressBar.visibility = View.GONE
+                binding.progressBar.visibility = View.GONE
                 binding.noNetworkLayout.visibility = View.VISIBLE
-                setButtonState(binding.btnOffline) {}
+                setButtonState(findButtonByFilter(filter)) {}
             }
         }
     }
@@ -106,7 +121,6 @@ class FallsFragment : Fragment() {
         fallsViewModel.getOfflineFalls()
         setButtonState(binding.btnOffline) { observeOfflineFalls() }
     }
-
 
     private fun setButtonState(clickedButton: Button, observerFunction: () -> Unit) {
         val buttons = listOf(binding.btnAll, binding.btnActive, binding.btnRescued, binding.btnFalse, binding.btnOffline)
@@ -133,20 +147,18 @@ class FallsFragment : Fragment() {
 
     private fun observeFallsList() {
         fallsViewModel.observeFallsList().observe(viewLifecycleOwner) { falls ->
-            hideProgressBar()
             handleFalls(falls)
         }
     }
 
     private fun observeOfflineFalls() {
         fallsViewModel.observeOfflineFalls().observe(viewLifecycleOwner) { falls ->
-            hideProgressBar()
-            Log.d("FallsFragment", "Offline falls: $falls")
             handleFalls(falls)
         }
     }
 
     private fun handleFalls(falls: List<Fall>?) {
+        Log.d("bbb","bbb")
         binding.progressBarLayout.visibility = View.GONE
         when {
             falls == null -> {

@@ -183,12 +183,32 @@ class AlertActivity : AppCompatActivity() {
     }
 
     private fun sendSMS(message: String) {
-        contactsViewModel.observeContactsList().observe(this) { contacts ->
-            contacts?.forEach { contact ->
-                smsHelper.sendSMS(contact.phone, message)
+        Log.d("SMS1", "Starting SMS sending process")
+
+        lifecycleScope.launch {
+            contactsViewModel.getContacts()
+            contactsViewModel.observeContactsList().observe(this@AlertActivity) { contacts ->
+                contacts?.let { contactList ->
+                    if (contactList.isEmpty()) {
+                        Log.d("SMS_Sender", "No contacts available")
+                        return@let
+                    }
+
+                    contactList.forEach { contact ->
+                        if (contact.phone.isNotEmpty()) {
+                            smsHelper.sendSMS(contact.phone, message)
+                            Log.d("SMS_Sender", "SMS sent to: ${contact.phone}")
+                        } else {
+                            Log.d("SMS_Sender", "Skipping empty phone number")
+                        }
+                    }
+                } ?: run {
+                    Log.d("SMS_Sender", "No contacts available")
+                }
             }
         }
     }
+
 
     @RequiresApi(Build.VERSION_CODES.O)
     private fun getCurrentDateTimeFormatted(): String {
@@ -209,36 +229,38 @@ class AlertActivity : AppCompatActivity() {
 
     @RequiresApi(Build.VERSION_CODES.O)
     private fun addFallToDatabase(status: String) {
-        val fall = FallWithoutID(
-            place = Place(
-                latitude = 0.0,
-                longitude = 0.0
-            ),
-            status = status,
-            dateTime = getCurrentDateTimeFormatted()
-        )
-        Log.d("dateTime",fall.dateTime)
-        fallsViewModel.addFall(fall)
+        locationHelper.getLastLocation { location ->
+            val fall = FallWithoutID(
+                place = Place(
+                    latitude = location?.latitude ?: 0.0,
+                    longitude = location?.longitude ?: 0.0
+                ),
+                status = status,
+                dateTime = getCurrentDateTimeFormatted()
+            )
+            Log.d("LocationData", "Latitude: ${location?.latitude}, Longitude: ${location?.longitude}")
+            fallsViewModel.addFall(fall)
+        }
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
     private fun addFallOffline(status: String) {
-        val fall = FallDaoModel(
-            id = System.currentTimeMillis().toString(),
-            latitude = 0.0,
-            longitude = 0.0,
-            status = status,
-            datetime = getCurrentDateTimeFormatted()
-        )
+            val fall = FallDaoModel(
+                id = System.currentTimeMillis().toString(),
+                latitude = 0.0,
+                longitude = 0.0,
+                status = status,
+                datetime = getCurrentDateTimeFormatted()
+            )
 
-        fallsViewModel.addFallOffline(fall)
+            fallsViewModel.addFallOffline(fall)
 
-        lifecycleScope.launch(Dispatchers.IO) {
-            val fallsDao = AppDatabase.getInstance(this@AlertActivity).fallDao()
-            Log.d("OfflineFalls", fallsDao.getAllFalls().toString())
-        }
-
+            lifecycleScope.launch(Dispatchers.IO) {
+                val fallsDao = AppDatabase.getInstance(this@AlertActivity).fallDao()
+                Log.d("OfflineFalls", fallsDao.getAllFalls().toString())
+            }
     }
+
 
     private fun observeAddedFall() {
         fallsViewModel.addFallResponse.observe(this, Observer { response ->

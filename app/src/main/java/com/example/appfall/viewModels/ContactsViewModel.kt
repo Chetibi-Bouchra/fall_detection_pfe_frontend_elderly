@@ -39,7 +39,7 @@ class ContactsViewModel(application: Application) : AndroidViewModel(application
         }
     }
 
-    private fun getContacts() {
+    fun getContacts() {
         if (networkHelper.isInternetAvailable()) {
             getContactsNetwork()
         } else {

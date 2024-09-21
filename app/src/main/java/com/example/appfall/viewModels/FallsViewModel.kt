@@ -22,6 +22,7 @@ import com.example.appfall.data.models.NotificationResponse
 import com.example.appfall.data.models.Place
 import com.example.appfall.data.models.UpdateResponse
 import com.example.appfall.retrofit.RetrofitInstance
+import com.example.appfall.services.NetworkHelper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -52,16 +53,27 @@ class FallsViewModel(application: Application) : AndroidViewModel(application) {
     val addErrorStatus: LiveData<String> = _addErrorStatus
     private lateinit var token: String
 
+    private val networkHelper = NetworkHelper(application)
+
     init {
         viewModelScope.launch(Dispatchers.IO) {
             val user = userDao.getUser()
             user?.let {
                 token = it.token
                 //getFalls()
-                //getOfflineFalls()
             }
         }
     }
+
+    private fun getFalls() {
+        if (networkHelper.isInternetAvailable()) {
+            getFalls("all")
+        } else {
+            getOfflineFalls()
+        }
+    }
+
+
 
     private fun addFallsOffline() {
         viewModelScope.launch(Dispatchers.IO) {
@@ -207,13 +219,16 @@ class FallsViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun observeFallsList(): LiveData<List<Fall>> {
+        Log.d("OfflineFalls", combinedFallsList.toString())
         return combinedFallsList
     }
 
     fun observeOfflineFalls(): LiveData<List<Fall>> {
-        return offlineFallsList.map { offlineFalls ->
+        var list =  offlineFallsList.map { offlineFalls ->
             offlineFalls?.map { it.toFall() }!!
         }
+        Log.d("OfflineFalls", list.toString())
+        return list
     }
 
     fun updateFallStatus(fallId: String, newStatus: String) {

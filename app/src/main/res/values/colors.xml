@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="hot_jazz">#BF3131</color>
+    <color name="hot_jazz">#0C1542</color>
+    <color name="hot_jazz_light">#3c54c9</color>
     <color name="deadly_depth">#0C1542</color>
     <color name="black_panther">#424242</color>
     <color name="teal_200">#FF03DAC5</color>

@@ -3,23 +3,41 @@ package com.example.appfall.adapters
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.Observer
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.RecyclerView
 import com.example.appfall.R
 import com.example.appfall.databinding.FallBinding
 import com.example.appfall.data.models.Fall
+import com.example.appfall.data.models.Notification
+import com.example.appfall.data.repositories.dataStorage.UserDao
+import com.example.appfall.services.NetworkHelper
+import com.example.appfall.services.SmsHelper
+import com.example.appfall.viewModels.ContactsViewModel
 import com.example.appfall.viewModels.FallsViewModel
-import java.time.LocalDateTime
-import java.time.ZoneId
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
 
-class FallsAdapter(private val fallsViewModel: FallsViewModel) : RecyclerView.Adapter<FallsAdapter.FallsViewHolder>() {
+class FallsAdapter(
+    private val fallsViewModel: FallsViewModel,
+    private val contactsViewModel: ContactsViewModel,
+    private val smsHelper: SmsHelper,
+    private val userDao: UserDao,
+    private val networkHelper: NetworkHelper,
+    private val lifecycleOwner: LifecycleOwner
+) : RecyclerView.Adapter<FallsAdapter.FallsViewHolder>() {
+
     private var fallsList = ArrayList<Fall>()
     private var counter = 1
 
@@ -33,9 +51,7 @@ class FallsAdapter(private val fallsViewModel: FallsViewModel) : RecyclerView.Ad
         return FallsViewHolder(binding)
     }
 
-    override fun getItemCount(): Int {
-        return fallsList.size
-    }
+    override fun getItemCount(): Int = fallsList.size
 
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onBindViewHolder(holder: FallsViewHolder, position: Int) {
@@ -43,31 +59,25 @@ class FallsAdapter(private val fallsViewModel: FallsViewModel) : RecyclerView.Ad
         holder.bind(fall)
     }
 
-    inner class FallsViewHolder(private val binding: FallBinding) :
-        RecyclerView.ViewHolder(binding.root) {
-
+    inner class FallsViewHolder(private val binding: FallBinding) : RecyclerView.ViewHolder(binding.root) {
         init {
-            // Set OnClickListener for the entire item view if needed
             binding.root.setOnClickListener {
-                // Handle click event here, e.g., navigate to fall details
+                // Handle click event here if needed
             }
         }
 
         @RequiresApi(Build.VERSION_CODES.O)
         fun bind(fall: Fall) {
             binding.apply {
-
                 // Extract date and time
                 val dateTimeString = fall.dateTime
                 val dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
                 val timeFormatter = DateTimeFormatter.ofPattern("HH:mm")
 
                 try {
-                    val dateTime = ZonedDateTime.parse(dateTimeString) // Parses the ISO 8601 format including timezone
-                    val date = dateTime.toLocalDate().format(dateFormatter)
-                    val time = dateTime.toLocalTime().format(timeFormatter)
-                    fallDate.text = date
-                    fallTime.text = time
+                    val dateTime = ZonedDateTime.parse(dateTimeString)
+                    fallDate.text = dateTime.toLocalDate().format(dateFormatter)
+                    fallTime.text = dateTime.toLocalTime().format(timeFormatter)
                 } catch (e: DateTimeParseException) {
                     fallDate.text = "Invalid Date"
                     fallTime.text = "Invalid Time"
@@ -79,7 +89,7 @@ class FallsAdapter(private val fallsViewModel: FallsViewModel) : RecyclerView.Ad
                     "rescued" -> "traitée"
                     "active" -> "active"
                     "false" -> "fausse"
-                    else -> fall.status // Default case
+                    else -> fall.status
                 }
 
                 // Update location link
@@ -100,35 +110,7 @@ class FallsAdapter(private val fallsViewModel: FallsViewModel) : RecyclerView.Ad
                     if (expandableView.visibility == View.GONE) {
                         expandableView.visibility = View.VISIBLE
                         expandArrow.setImageResource(R.drawable.ic_collapse_arrow)
-                        if (fall.status == "active") {
-                            btnRescued.visibility = View.VISIBLE
-                            btnFalse.visibility = View.VISIBLE
-                            btnFalse.setOnClickListener {
-                                fallsViewModel.updateFallStatus(fall._id, "false")
-                                btnRescued.visibility = View.GONE
-                                btnFalse.visibility = View.GONE
-                                statusText.visibility = View.VISIBLE
-                                statusText.text = "fausse"
-                            }
-                            btnRescued.setOnClickListener {
-                                fallsViewModel.updateFallStatus(fall._id, "rescued")
-                                btnRescued.visibility = View.GONE
-                                btnFalse.visibility = View.GONE
-                                statusText.visibility = View.VISIBLE
-                                statusText.text = "traitée"
-
-                            }
-                        } else {
-                            btnRescued.visibility = View.GONE
-                            btnFalse.visibility = View.GONE
-                            statusText.visibility = View.VISIBLE
-                            statusText.text = when (fall.status) {
-                                "rescued" -> "traitée"
-                                "active" -> "active"
-                                "false" -> "fausse"
-                                else -> fall.status // Default case
-                            }
-                        }
+                        handleExpandCollapseButtons(fall)
                     } else {
                         expandableView.visibility = View.GONE
                         expandArrow.setImageResource(R.drawable.ic_expand_arrow)
@@ -141,6 +123,93 @@ class FallsAdapter(private val fallsViewModel: FallsViewModel) : RecyclerView.Ad
                     it.context.startActivity(intent)
                 }
             }
+        }
+
+        private fun handleExpandCollapseButtons(fall: Fall) {
+            binding.apply {
+                if (fall.status == "active") {
+                    btnRescued.visibility = View.VISIBLE
+                    btnFalse.visibility = View.VISIBLE
+
+                    btnFalse.setOnClickListener {
+                        fallsViewModel.updateFallStatus(fall._id, "false")
+                        updateFallStatusText("fausse")
+                        sendNotification("Fausse")
+                    }
+                    btnRescued.setOnClickListener {
+                        fallsViewModel.updateFallStatus(fall._id, "rescued")
+                        updateFallStatusText("traitée")
+                        sendNotification("Traitée")
+                    }
+                } else {
+                    btnRescued.visibility = View.GONE
+                    btnFalse.visibility = View.GONE
+                    updateFallStatusText(fall.status)
+                }
+            }
+        }
+
+        private fun updateFallStatusText(status: String) {
+            binding.statusText.visibility = View.VISIBLE
+            binding.statusText.text = when (status) {
+                "rescued" -> "traitée"
+                "active" -> "active"
+                "false" -> "fausse"
+                else -> status
+            }
+        }
+    }
+
+    private fun sendNotification(message: String) {
+        if (networkHelper.isInternetAvailable()) {
+            sendPushNotification(message)
+        } else {
+            sendSMS(message)
+        }
+    }
+
+    private fun sendPushNotification(message: String) {
+        lifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
+            val user = userDao.getUser()
+            val notification = user?.let {
+                Notification(
+                    topic = "news",
+                    title = "Notification de chute",
+                    message = message
+                )
+            }
+            notification?.let {
+                withContext(Dispatchers.Main) {
+                    fallsViewModel.sendNotification(it)
+                }
+            }
+        }
+    }
+
+    private fun sendSMS(message: String) {
+        Log.d("SMS1", "Starting SMS sending process")
+
+        lifecycleOwner.lifecycleScope.launch {
+            contactsViewModel.getContacts()
+            contactsViewModel.observeContactsList().observe(lifecycleOwner, Observer { contacts ->
+                contacts?.let { contactList ->
+                    if (contactList.isEmpty()) {
+                        Log.d("SMS_Sender", "No contacts available")
+                        return@let
+                    }
+
+                    contactList.forEach { contact ->
+                        if (contact.phone.isNotEmpty()) {
+                            smsHelper.sendSMS(contact.phone, message)
+                            Log.d("SMS_Sender", "SMS sent to: ${contact.phone}")
+                        } else {
+                            Log.d("SMS_Sender", "Skipping empty phone number")
+                        }
+                    }
+                } ?: run {
+                    Log.d("SMS_Sender", "No contacts available")
+                }
+            })
         }
     }
 }
