@@ -223,12 +223,12 @@ class FallsViewModel(application: Application) : AndroidViewModel(application) {
         return combinedFallsList
     }
 
-    fun observeOfflineFalls(): LiveData<List<Fall>> {
+    fun observeOfflineFalls(): MutableLiveData<List<Fall>?> {
         var list =  offlineFallsList.map { offlineFalls ->
             offlineFalls?.map { it.toFall() }!!
         }
         Log.d("OfflineFalls", list.toString())
-        return list
+        return mutableFallsList
     }
 
     fun updateFallStatus(fallId: String, newStatus: String) {

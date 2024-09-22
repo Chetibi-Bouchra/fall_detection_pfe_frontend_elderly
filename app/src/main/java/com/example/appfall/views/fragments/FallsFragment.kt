@@ -67,13 +67,13 @@ class FallsFragment : Fragment() {
         showProgressBar() // Show the progress bar first
 
         if (networkHelper.isInternetAvailable()) {
-            //fallsViewModel.getFalls("all")
+            fallsViewModel.getFalls("all")
             fallsViewModel.observeFallsList().observe(viewLifecycleOwner) { falls ->
                 hideProgressBar() // Hide the progress bar when data is received
                 handleFalls(falls)
             }
         } else {
-            //fallsViewModel.getOfflineFalls()
+            fallsViewModel.getOfflineFalls()
             fallsViewModel.observeOfflineFalls().observe(viewLifecycleOwner) { falls ->
                 hideProgressBar() // Hide the progress bar when data is received
                 handleFalls(falls)

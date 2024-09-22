@@ -164,7 +164,7 @@ class FallsAdapter(
         if (networkHelper.isInternetAvailable()) {
             sendPushNotification(message)
         } else {
-            sendSMS(message)
+            //sendSMS(message)
         }
     }
 
