@@ -75,22 +75,39 @@ class FallsViewModel(application: Application) : AndroidViewModel(application) {
 
 
 
-    private fun addFallsOffline() {
+    fun addFallsFromOfflineToDb(longitude: Double,latitude: Double) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                // Retrieve the list of falls to be added (replace this with actual data retrieval logic)
-                val fallsToAdd = getFallsToAdd() // This method should return a List<FallDaoModel>
+                // Retrieve the list of falls stored in the local database
+                val offlineFalls = fallDao.getAllFalls() // Assuming this returns a list of FallDaoModel
 
-                // Insert each fall into the local database
-                fallsToAdd.forEach { fall ->
-                    fallDao.insert(fall)
+                if (offlineFalls.isNotEmpty()) {
+                    offlineFalls.forEach { fallDaoModel ->
+                        try {
+                            // Convert FallDaoModel to FallWithoutID using the extension function
+                            val fallWithoutID = fallDaoModel.toFallWithoutID(longitude, latitude)
+
+                            // Send the fall to the server
+                            addFall(fallWithoutID)
+                            Log.d("AddFallsOffline", "Successfully sent fall with ID: ${fallDaoModel.id}")
+                        } catch (e: Exception) {
+                            Log.e("AddFallsOffline", "Error sending fall with ID: ${fallDaoModel.id}", e)
+                        }
+                    }
+
+                    fallDao.deleteFalls()
+                    Log.d("AddFallsOffline", "All offline falls processed.")
+                } else {
+                    Log.d("AddFallsOffline", "No offline falls to send.")
                 }
             } catch (e: Exception) {
-                // Handle exceptions (e.g., log errors or notify the user)
-                Log.e("AddFallsOffline", "Error adding falls offline", e)
+                // Handle any exceptions during the process (e.g., network errors or database issues)
+                Log.e("AddFallsOffline", "Error processing offline falls", e)
             }
         }
     }
+
+
 
     // Dummy function to represent data retrieval; replace with your actual implementation
     private fun getFallsToAdd(): List<FallDaoModel> {
@@ -386,6 +403,17 @@ private fun FallDaoModel.toFall(): Fall {
         place = Place(
             latitude = this.latitude,
             longitude = this.longitude
+        ),
+        status = this.status,
+        dateTime = this.datetime.toString()
+    )
+}
+
+private fun  FallDaoModel.toFallWithoutID(longitude: Double, latitude: Double): FallWithoutID {
+    return FallWithoutID(
+        place = Place(
+            latitude = longitude,
+            longitude = latitude
         ),
         status = this.status,
         dateTime = this.datetime.toString()

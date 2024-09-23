@@ -228,10 +228,16 @@ class InferenceService : Service(), SensorEventListener {
                 }
                 startActivity(alertIntent)
             } else {
+
+                Log.d("SensorService", "App is in the foreground")
+                addFall("active")
+                sendNotification("Une chute a été détectée")
+                playIgnoreSound()
+                Log.d("SensorService", "Sending notification")
+
                 val intent = Intent(this, MainActivity::class.java).apply {
                     flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                 }
-
                 val pendingIntent = PendingIntent.getActivity(
                     this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
                 )
@@ -254,10 +260,7 @@ class InferenceService : Service(), SensorEventListener {
                 }
                 notificationManager.notify(NOTIFICATION_ID, notification)
 
-                Log.d("SensorService", "App is in the foreground")
-                addFall("active")
-                sendNotification("Une chute a été détectée")
-                playIgnoreSound()
+
 
             }
         } else {
@@ -336,8 +339,7 @@ class InferenceService : Service(), SensorEventListener {
             val user = userDao.getUser()
             val notification = user?.let {
                 com.example.appfall.data.models.Notification(
-                    //topic = it.phone,
-                    topic = "news",
+                    topic = it.phone,
                     title = "Notification de chute",
                     message = message
                 )

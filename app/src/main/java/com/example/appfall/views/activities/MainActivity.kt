@@ -22,12 +22,15 @@ import com.example.appfall.R
 import com.example.appfall.data.repositories.AppDatabase
 import com.example.appfall.data.repositories.dataStorage.UserDao
 import com.example.appfall.databinding.ActivityMainBinding
+import com.example.appfall.services.LocationHelper
+import com.example.appfall.services.NetworkHelper
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import com.example.appfall.services.SoundHelper
 import com.example.appfall.utils.PermissionHelper
 import com.example.appfall.viewModels.ContactsViewModel
+import com.example.appfall.viewModels.FallsViewModel
 import com.example.appfall.viewModels.UserViewModel
 
 class MainActivity : AppCompatActivity() {
@@ -37,7 +40,9 @@ class MainActivity : AppCompatActivity() {
     private lateinit var contactsViewModel: ContactsViewModel
     private lateinit var userViewModel: UserViewModel
     private lateinit var soundHelper: SoundHelper
-
+    private lateinit var fallsViewModel: FallsViewModel
+    private lateinit var networkHelper: NetworkHelper
+    private lateinit var locationHelper: LocationHelper
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -46,6 +51,8 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         //PermissionHelper.requestAllPermissions(this)
+        networkHelper = NetworkHelper(this)
+        locationHelper = LocationHelper(this)
 
         LocalBroadcastManager.getInstance(this).registerReceiver(sensorResultReceiver, IntentFilter("SENSOR_RESULT_ACTION"))
 
@@ -57,11 +64,23 @@ class MainActivity : AppCompatActivity() {
         // Initialize ViewModel
         contactsViewModel = ViewModelProvider(this)[ContactsViewModel::class.java]
         userViewModel = ViewModelProvider(this)[UserViewModel::class.java]
+        fallsViewModel = ViewModelProvider(this)[FallsViewModel::class.java]
 
         // Initialize SoundHelper
         soundHelper = SoundHelper(this)
 
         userDao = AppDatabase.getInstance(this).userDao()
+
+        if (networkHelper.isInternetAvailable()) {
+            locationHelper.getLastLocation { location ->
+                if (location != null) {
+                    Log.d("MainActivity", "Location received: $location")
+                    fallsViewModel.addFallsFromOfflineToDb(location.longitude, location.latitude)
+                } else {
+                    Log.e("MainActivity", "Location not available, falls cannot be sent.")
+                }
+            }
+        }
 
         //observeInDanger()
 

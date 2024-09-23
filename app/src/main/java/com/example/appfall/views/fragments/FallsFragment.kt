@@ -38,12 +38,13 @@ class FallsFragment : Fragment() {
         userDao = AppDatabase.getInstance(requireContext()).userDao()
         smsHelper = SmsHelper(requireContext())
 
+
         // Initialize ViewModels
         fallsViewModel = ViewModelProvider(this).get(FallsViewModel::class.java)
         contactsViewModel = ViewModelProvider(this).get(ContactsViewModel::class.java)
 
         // Initialize the adapter
-        fallsAdapter = FallsAdapter(fallsViewModel, contactsViewModel, smsHelper, userDao, networkHelper, this)
+        fallsAdapter = FallsAdapter(fallsViewModel, contactsViewModel, smsHelper, userDao, networkHelper, this, "all")
     }
 
     override fun onCreateView(
@@ -63,6 +64,7 @@ class FallsFragment : Fragment() {
             adapter = fallsAdapter
         }
 
+
         // Initialize data based on network availability
         showProgressBar() // Show the progress bar first
 
@@ -70,16 +72,15 @@ class FallsFragment : Fragment() {
             fallsViewModel.getFalls("all")
             fallsViewModel.observeFallsList().observe(viewLifecycleOwner) { falls ->
                 hideProgressBar() // Hide the progress bar when data is received
-                handleFalls(falls)
+                handleFalls(falls, "all")
             }
         } else {
             fallsViewModel.getOfflineFalls()
             fallsViewModel.observeOfflineFalls().observe(viewLifecycleOwner) { falls ->
                 hideProgressBar() // Hide the progress bar when data is received
-                handleFalls(falls)
+                handleFalls(falls, "all")
             }
         }
-
 
         // Set up filter button listeners
         binding.btnAll.setOnClickListener { handleFilterButtonClick("all") }
@@ -97,15 +98,18 @@ class FallsFragment : Fragment() {
 
         if (networkHelper.isInternetAvailable()) {
             fallsViewModel.getFalls(filter)
-            setButtonState(findButtonByFilter(filter)) { observeFallsList() }
+            setButtonState(findButtonByFilter(filter)) {
+                observeFallsList(filter)
+            }
         } else {
             if (filter == "all") {
                 binding.progressBar.visibility = View.VISIBLE
                 fallsViewModel.getOfflineFalls()
-                setButtonState(findButtonByFilter(filter)) { observeOfflineFalls() }
+                setButtonState(findButtonByFilter(filter)) {
+                    observeOfflineFalls()
+                }
             } else {
                 binding.fallsList.visibility = View.GONE
-                binding.progressBar.visibility = View.GONE
                 binding.progressBar.visibility = View.GONE
                 binding.noNetworkLayout.visibility = View.VISIBLE
                 setButtonState(findButtonByFilter(filter)) {}
@@ -119,7 +123,9 @@ class FallsFragment : Fragment() {
         binding.noDataLayout.visibility = View.GONE
         binding.noNetworkLayout.visibility = View.GONE
         fallsViewModel.getOfflineFalls()
-        setButtonState(binding.btnOffline) { observeOfflineFalls() }
+        setButtonState(binding.btnOffline) {
+            observeOfflineFalls()
+        }
     }
 
     private fun setButtonState(clickedButton: Button, observerFunction: () -> Unit) {
@@ -145,20 +151,19 @@ class FallsFragment : Fragment() {
         }
     }
 
-    private fun observeFallsList() {
+    private fun observeFallsList(filter: String) {
         fallsViewModel.observeFallsList().observe(viewLifecycleOwner) { falls ->
-            handleFalls(falls)
+            handleFalls(falls, filter)
         }
     }
 
     private fun observeOfflineFalls() {
         fallsViewModel.observeOfflineFalls().observe(viewLifecycleOwner) { falls ->
-            handleFalls(falls)
+            handleFalls(falls, "all")
         }
     }
 
-    private fun handleFalls(falls: List<Fall>?) {
-        Log.d("bbb","bbb")
+    private fun handleFalls(falls: List<Fall>?, filter: String) {
         binding.progressBarLayout.visibility = View.GONE
         when {
             falls == null -> {
@@ -174,7 +179,7 @@ class FallsFragment : Fragment() {
                 binding.noNetworkLayout.visibility = View.GONE
             }
             else -> {
-                fallsAdapter.setFalls(ArrayList(falls))
+                fallsAdapter.setFalls(ArrayList(falls), filter)  // Update adapter with filtered list
                 binding.noDataLayout.visibility = View.GONE
                 binding.fallsList.visibility = View.VISIBLE
                 binding.noNetworkLayout.visibility = View.GONE

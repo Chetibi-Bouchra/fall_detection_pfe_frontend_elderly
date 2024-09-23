@@ -25,9 +25,11 @@ import com.example.appfall.viewModels.FallsViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.text.SimpleDateFormat
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
+import java.util.Locale
 
 class FallsAdapter(
     private val fallsViewModel: FallsViewModel,
@@ -35,13 +37,15 @@ class FallsAdapter(
     private val smsHelper: SmsHelper,
     private val userDao: UserDao,
     private val networkHelper: NetworkHelper,
-    private val lifecycleOwner: LifecycleOwner
+    private val lifecycleOwner: LifecycleOwner,
+    private var currentFilter: String
 ) : RecyclerView.Adapter<FallsAdapter.FallsViewHolder>() {
 
     private var fallsList = ArrayList<Fall>()
     private var counter = 1
 
-    fun setFalls(fallsList: ArrayList<Fall>) {
+    fun setFalls(fallsList: ArrayList<Fall>, filter: String) {
+        this.currentFilter = filter
         this.fallsList = fallsList
         notifyDataSetChanged()
     }
@@ -84,7 +88,7 @@ class FallsAdapter(
                 }
 
                 // Update title and status
-                fallTitle.text = "Chute ${counter++}"
+                fallTitle.text = "Chute ${extractTimestamp(fall.dateTime)}"
                 fallStatus.text = when (fall.status) {
                     "rescued" -> "traitée"
                     "active" -> "active"
@@ -127,18 +131,42 @@ class FallsAdapter(
 
         private fun handleExpandCollapseButtons(fall: Fall) {
             binding.apply {
+                btnRescued.visibility = View.GONE
+                btnFalse.visibility = View.GONE
+                statusText.visibility = View.GONE
+
                 if (fall.status == "active") {
                     btnRescued.visibility = View.VISIBLE
                     btnFalse.visibility = View.VISIBLE
 
                     btnFalse.setOnClickListener {
-                        fallsViewModel.updateFallStatus(fall._id, "false")
-                        updateFallStatusText("fausse")
+                        btnRescued.visibility = View.GONE
+                        btnFalse.visibility = View.GONE
+                        if (networkHelper.isInternetAvailable())
+                        {
+                            fallsViewModel.updateFallStatus(fall._id, "false")
+                            updateFallStatusText("fausse")
+                            fallsViewModel.getFalls(currentFilter)
+                        }else {
+                            fallsViewModel.updateOfflineFallStatus(fall._id, "false")
+                            updateFallStatusText("fausse")
+                            fallsViewModel.getOfflineFalls()
+                        }
                         sendNotification("Fausse")
                     }
                     btnRescued.setOnClickListener {
-                        fallsViewModel.updateFallStatus(fall._id, "rescued")
-                        updateFallStatusText("traitée")
+                        btnRescued.visibility = View.GONE
+                        btnFalse.visibility = View.GONE
+                        if (networkHelper.isInternetAvailable())
+                        {
+                            fallsViewModel.updateFallStatus(fall._id, "rescued")
+                            updateFallStatusText("rescued")
+                            fallsViewModel.getFalls(currentFilter)
+                        }else {
+                            fallsViewModel.updateOfflineFallStatus(fall._id, "rescued")
+                            updateFallStatusText("rescued")
+                            fallsViewModel.getOfflineFalls()
+                        }
                         sendNotification("Traitée")
                     }
                 } else {
@@ -164,7 +192,7 @@ class FallsAdapter(
         if (networkHelper.isInternetAvailable()) {
             sendPushNotification(message)
         } else {
-            //sendSMS(message)
+            sendSMS(message)
         }
     }
 
@@ -173,7 +201,7 @@ class FallsAdapter(
             val user = userDao.getUser()
             val notification = user?.let {
                 Notification(
-                    topic = "news",
+                    topic = it.phone,
                     title = "Notification de chute",
                     message = message
                 )
@@ -185,6 +213,18 @@ class FallsAdapter(
             }
         }
     }
+
+    fun extractTimestamp(dateTime: String, pattern: String = "yyyy-MM-dd'T'HH:mm:ss"): Long? {
+        return try {
+            val dateFormat = SimpleDateFormat(pattern, Locale.getDefault())
+            val date = dateFormat.parse(dateTime)
+            date?.time
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
+    }
+
 
     private fun sendSMS(message: String) {
         Log.d("SMS1", "Starting SMS sending process")
